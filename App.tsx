@@ -884,6 +884,18 @@ const App = () => {
     setAllPosts(postsWithOverrides);
   }, [localPosts, categoryOverrides]);
 
+  // 当从其他页面返回到 LIST 时，确保重置筛选状态为"全部"
+  // 使用 useRef 跟踪上一次的 view，只有当从非 LIST 切换到 LIST 时才重置
+  const prevViewRef = useRef<ViewState>('LIST');
+  useEffect(() => {
+    // 如果从其他页面（DETAIL、ABOUT、EDITOR）返回到 LIST，重置筛选状态
+    if (view === 'LIST' && prevViewRef.current !== 'LIST') {
+      setCurrentCategory(Category.ALL);
+      setSearchQuery('');
+    }
+    prevViewRef.current = view;
+  }, [view]);
+
   // Filter 函数：根据 currentCategory 和 searchQuery 更新 displayPosts
   // 这个函数只更新 displayPosts，永远不触碰 allPosts
   useEffect(() => {
