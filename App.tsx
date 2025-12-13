@@ -33,6 +33,8 @@ const Header = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const categories = Object.values(Category);
+  // 导航栏显示顺序：读书笔记、心智成长、商业思考
+  const navCategories = [Category.READING, Category.MIND, Category.BUSINESS];
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-brand-paper/90 dark:bg-brand-navy/90 border-b border-stone-200 dark:border-slate-800 transition-colors duration-300">
@@ -60,7 +62,7 @@ const Header = ({
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex space-x-8 items-center">
-            {categories.slice(0, 3).map((cat) => (
+            {navCategories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
@@ -387,11 +389,13 @@ const ArticleView = ({ post, onBack }: { post: BlogPost; onBack: () => void }) =
 const EditorView = ({ 
   onSave, 
   localPosts,
+  onUpdate,
   onClear,
   onBack
 }: { 
   onSave: (post: BlogPost) => void;
   localPosts: BlogPost[];
+  onUpdate: (postId: string, updates: Partial<BlogPost>) => void;
   onClear: () => void;
   onBack: () => void;
 }) => {
@@ -614,6 +618,38 @@ const EditorView = ({
 
         {/* Right: Export Area */}
         <div className="space-y-6">
+           {/* 已保存文章快速编辑 */}
+           {localPosts.length > 0 && (
+             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-slate-700">
+               <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                 <BookOpen size={18}/> 已保存文章 ({localPosts.length})
+               </h3>
+               <div className="space-y-3 max-h-64 overflow-y-auto">
+                 {localPosts.map((post) => (
+                   <div key={post.id} className="p-3 bg-stone-50 dark:bg-slate-900 rounded-lg border border-stone-200 dark:border-slate-700">
+                     <div className="flex items-start justify-between gap-2 mb-2">
+                       <p className="text-sm font-medium text-slate-900 dark:text-stone-100 line-clamp-2 flex-1">
+                         {post.title}
+                       </p>
+                     </div>
+                     <div className="flex items-center gap-2">
+                       <span className="text-xs text-slate-500 dark:text-slate-400">分类：</span>
+                       <select
+                         value={post.category}
+                         onChange={(e) => onUpdate(post.id, { category: e.target.value as Category })}
+                         className="flex-1 text-xs px-2 py-1 rounded border border-stone-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none"
+                       >
+                         {Object.values(Category).filter(c => c !== Category.ALL).map(c => (
+                           <option key={c} value={c}>{c}</option>
+                         ))}
+                       </select>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             </div>
+           )}
+
            <div className="bg-stone-100 dark:bg-slate-900 p-6 rounded-xl border border-stone-200 dark:border-slate-700">
               <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                  <FileJson size={18}/> 导出数据
@@ -733,6 +769,14 @@ const App = () => {
     localStorage.setItem('local_blog_posts', JSON.stringify(updated));
   };
   
+  const handleUpdateLocalPost = (postId: string, updates: Partial<BlogPost>) => {
+    const updated = localPosts.map(post => 
+      post.id === postId ? { ...post, ...updates } : post
+    );
+    setLocalPosts(updated);
+    localStorage.setItem('local_blog_posts', JSON.stringify(updated));
+  };
+  
   const handleClearLocalPosts = () => {
     if(window.confirm("确定要清空所有本地草稿吗？此操作不可恢复。")) {
        setLocalPosts([]);
@@ -827,6 +871,7 @@ const App = () => {
            <EditorView 
              onSave={handleSaveLocalPost}
              localPosts={localPosts}
+             onUpdate={handleUpdateLocalPost}
              onClear={handleClearLocalPosts}
              onBack={() => setView('LIST')}
            />
