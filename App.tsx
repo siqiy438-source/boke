@@ -251,11 +251,13 @@ const FilterBar = ({
 };
 
 // 4. Blog Card
-const BlogCard = ({ post, onClick, onUpdateCategory }: { 
-  post: BlogPost; 
+type BlogCardProps = {
+  post: BlogPost;
   onClick: () => void;
   onUpdateCategory?: (postId: string, category: Category) => void;
-}) => {
+};
+
+const BlogCard: React.FC<BlogCardProps> = ({ post, onClick, onUpdateCategory }) => {
   const isLocalPost = post.id.startsWith('local-');
   
   // Mapping categories to icons
@@ -348,7 +350,6 @@ const ArticleView = ({ post, onBack, onUpdateCategory }: {
   onBack: () => void;
   onUpdateCategory?: (postId: string, category: Category) => void;
 }) => {
-  const isLocalPost = post.id.startsWith('local-');
   // Simple markdown-to-html simulator for the demo
   const renderContent = (content: string) => {
     return content.split('\n').map((line, idx) => {
@@ -373,7 +374,7 @@ const ArticleView = ({ post, onBack, onUpdateCategory }: {
       <article>
         <div className="mb-8">
            <div className="flex gap-2 mb-4 items-center">
-            {isLocalPost && onUpdateCategory ? (
+            {onUpdateCategory ? (
               <select
                 value={post.category}
                 onChange={(e) => onUpdateCategory(post.id, e.target.value as Category)}
@@ -793,6 +794,8 @@ const App = () => {
   
   // Local Storage for new posts
   const [localPosts, setLocalPosts] = useState<BlogPost[]>([]);
+  // Category overrides for published posts (and optionally any post) stored in browser
+  const [categoryOverrides, setCategoryOverrides] = useState<Record<string, Category>>({});
 
   useEffect(() => {
     // Load local posts on mount
@@ -806,6 +809,25 @@ const App = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('post_category_overrides');
+    if (saved) {
+      try {
+        setCategoryOverrides(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse category overrides");
+      }
+    }
+  }, []);
+
+  const persistCategoryOverrides = (updater: Record<string, Category> | ((prev: Record<string, Category>) => Record<string, Category>)) => {
+    setCategoryOverrides(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      localStorage.setItem('post_category_overrides', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleSaveLocalPost = (post: BlogPost) => {
     const updated = [post, ...localPosts];
     setLocalPosts(updated);
@@ -818,6 +840,14 @@ const App = () => {
     );
     setLocalPosts(updated);
     localStorage.setItem('local_blog_posts', JSON.stringify(updated));
+  };
+
+  const handleUpdateAnyPostCategory = (postId: string, category: Category) => {
+    if (postId.startsWith('local-')) {
+      handleUpdateLocalPost(postId, { category });
+      return;
+    }
+    persistCategoryOverrides(prev => ({ ...prev, [postId]: category }));
   };
   
   const handleClearLocalPosts = () => {
@@ -838,8 +868,12 @@ const App = () => {
 
   // Combine static posts and local posts
   const allPosts = useMemo(() => {
-    return [...localPosts, ...BLOG_POSTS];
-  }, [localPosts]);
+    const merged = [...localPosts, ...BLOG_POSTS];
+    return merged.map(p => {
+      const overriddenCategory = categoryOverrides[p.id];
+      return overriddenCategory ? { ...p, category: overriddenCategory } : p;
+    });
+  }, [localPosts, categoryOverrides]);
 
   // Filter Logic
   const filteredPosts = useMemo(() => {
@@ -908,7 +942,7 @@ const App = () => {
           <ArticleView 
             post={allPosts.find(p => p.id === activePostId)!} 
             onBack={handleBack}
-            onUpdateCategory={(postId, category) => handleUpdateLocalPost(postId, { category })}
+            onUpdateCategory={handleUpdateAnyPostCategory}
           />
         )}
         
