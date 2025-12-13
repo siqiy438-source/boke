@@ -6,7 +6,7 @@ import {
   PenTool, Save, Trash2, Download, FileJson, Plus,
   Shuffle, Upload
 } from './components/Icons';
-import { BLOG_POSTS } from './constants';
+import { BLOG_POSTS, PERSONAL_INFO } from './constants';
 import { BlogPost, Category, ViewState } from './types';
 
 // --- Components ---
@@ -731,57 +731,69 @@ const EditorView = ({
 }
 
 // 7. About Section
-const AboutSection = () => (
-  <div className="max-w-2xl mx-auto px-4 py-12 animate-in fade-in duration-500">
-    <div className="text-center mb-12">
-      <div className="w-32 h-32 bg-slate-200 rounded-full mx-auto mb-6 overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl">
-         <img src="https://picsum.photos/400/400?grayscale" alt="Siqi" className="w-full h-full object-cover"/>
-      </div>
-      <h2 className="text-3xl font-serif font-bold text-slate-900 dark:text-white mb-2">我是思奇</h2>
-      <p className="text-brand-orange font-medium">23岁 / 连续创业者 / 终身学习者</p>
-    </div>
+const AboutSection = () => {
+  const getIconComponent = (iconName: string) => {
+    switch(iconName) {
+      case 'Brain': return Brain;
+      case 'Briefcase': return Briefcase;
+      case 'TrendingUp': return TrendingUp;
+      case 'BookOpen': return BookOpen;
+      default: return Brain;
+    }
+  };
 
-    <div className="space-y-8 text-lg text-slate-700 dark:text-stone-300 leading-relaxed bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-700">
-      <p>
-        你好，欢迎来到我的精神角落。
-      </p>
-      <p>
-        在这个信息爆炸的时代，我试图通过**写作**来对抗遗忘和焦虑。
-        目前的我专注于实体店创业，同时对金融投资有着浓厚的兴趣。
-      </p>
-      <h3 className="text-xl font-bold font-serif text-slate-900 dark:text-white mt-8">我的专栏规划</h3>
-      <ul className="space-y-4">
-        <li className="flex items-start gap-3">
-          <Brain className="mt-1 text-brand-orange shrink-0"/>
-          <div>
-            <strong className="text-slate-900 dark:text-stone-100">心智成长：</strong>
-            <span className="block text-sm text-slate-500">探索潜意识、元认知与情绪力，向内求索。</span>
-          </div>
-        </li>
-        <li className="flex items-start gap-3">
-          <Briefcase className="mt-1 text-brand-orange shrink-0"/>
-          <div>
-            <strong className="text-slate-900 dark:text-stone-100">商业思考：</strong>
-            <span className="block text-sm text-slate-500">记录我在女装店实战中的经验、教训与价值重排方法论。</span>
-          </div>
-        </li>
-        <li className="flex items-start gap-3">
-          <TrendingUp className="mt-1 text-brand-orange shrink-0"/>
-          <div>
-            <strong className="text-slate-900 dark:text-stone-100">财富逻辑：</strong>
-            <span className="block text-sm text-slate-500">反脆弱投资笔记，建立属于年轻人的金融风控体系。</span>
-          </div>
-        </li>
-      </ul>
-      
-      <div className="flex justify-center gap-6 mt-12 pt-8 border-t border-stone-100 dark:border-slate-700">
-        <a href="#" className="text-slate-400 hover:text-brand-orange transition-colors"><Twitter size={24}/></a>
-        <a href="#" className="text-slate-400 hover:text-brand-orange transition-colors"><Github size={24}/></a>
-        <a href="#" className="text-slate-400 hover:text-brand-orange transition-colors"><Mail size={24}/></a>
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-12 animate-in fade-in duration-500">
+      <div className="text-center mb-12">
+        <div className="w-32 h-32 bg-slate-200 rounded-full mx-auto mb-6 overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl">
+           <img src={PERSONAL_INFO.avatarUrl} alt={PERSONAL_INFO.name} className="w-full h-full object-cover"/>
+        </div>
+        <h2 className="text-3xl font-serif font-bold text-slate-900 dark:text-white mb-2">{PERSONAL_INFO.name}</h2>
+        <p className="text-brand-orange font-medium">{PERSONAL_INFO.subtitle}</p>
+      </div>
+
+      <div className="space-y-8 text-lg text-slate-700 dark:text-stone-300 leading-relaxed bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-700">
+        {PERSONAL_INFO.introduction.map((paragraph, index) => (
+          <p key={index}>{paragraph}</p>
+        ))}
+        
+        <h3 className="text-xl font-bold font-serif text-slate-900 dark:text-white mt-8">我的专栏规划</h3>
+        <ul className="space-y-4">
+          {PERSONAL_INFO.columns.map((column, index) => {
+            const IconComponent = getIconComponent(column.icon);
+            return (
+              <li key={index} className="flex items-start gap-3">
+                <IconComponent className="mt-1 text-brand-orange shrink-0"/>
+                <div>
+                  <strong className="text-slate-900 dark:text-stone-100">{column.title}</strong>
+                  <span className="block text-sm text-slate-500">{column.description}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        
+        <div className="flex justify-center gap-6 mt-12 pt-8 border-t border-stone-100 dark:border-slate-700">
+          {PERSONAL_INFO.socialLinks.twitter && (
+            <a href={PERSONAL_INFO.socialLinks.twitter} className="text-slate-400 hover:text-brand-orange transition-colors">
+              <Twitter size={24}/>
+            </a>
+          )}
+          {PERSONAL_INFO.socialLinks.github && (
+            <a href={PERSONAL_INFO.socialLinks.github} className="text-slate-400 hover:text-brand-orange transition-colors">
+              <Github size={24}/>
+            </a>
+          )}
+          {PERSONAL_INFO.socialLinks.email && (
+            <a href={PERSONAL_INFO.socialLinks.email} className="text-slate-400 hover:text-brand-orange transition-colors">
+              <Mail size={24}/>
+            </a>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // --- Main App Logic ---
 

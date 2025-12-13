@@ -1,4 +1,37 @@
-import { BlogPost, Category } from './types';
+import { BlogPost, Category, PersonalInfo } from './types';
+
+// 个人信息配置 - 在这里修改你的头像和个人简历
+export const PERSONAL_INFO: PersonalInfo = {
+  name: '我是思奇',
+  avatarUrl: 'https://picsum.photos/400/400?grayscale', // 修改这里的链接来更换头像
+  subtitle: '23岁 / 连续创业者 / 终身学习者',
+  introduction: [
+    '你好，欢迎来到我的精神角落。',
+    '在这个信息爆炸的时代，我试图通过**写作**来对抗遗忘和焦虑。目前的我专注于实体店创业，同时对金融投资有着浓厚的兴趣。'
+  ],
+  columns: [
+    {
+      icon: 'Brain',
+      title: '心智成长：',
+      description: '探索潜意识、元认知与情绪力，向内求索。'
+    },
+    {
+      icon: 'Briefcase',
+      title: '商业思考：',
+      description: '记录我在女装店实战中的经验、教训与价值重排方法论。'
+    },
+    {
+      icon: 'TrendingUp',
+      title: '财富逻辑：',
+      description: '反脆弱投资笔记，建立属于年轻人的金融风控体系。'
+    }
+  ],
+  socialLinks: {
+    twitter: '#',
+    github: '#',
+    email: '#'
+  }
+};
 
 export const BLOG_POSTS: BlogPost[] = [
   {

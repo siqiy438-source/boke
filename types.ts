@@ -18,4 +18,21 @@ export interface BlogPost {
   content: string; // Simulating Markdown content
 }
 
+export interface PersonalInfo {
+  name: string;
+  avatarUrl: string;
+  subtitle: string;
+  introduction: string[];
+  columns: {
+    icon: 'Brain' | 'Briefcase' | 'TrendingUp' | 'BookOpen';
+    title: string;
+    description: string;
+  }[];
+  socialLinks: {
+    twitter?: string;
+    github?: string;
+    email?: string;
+  };
+}
+
 export type ViewState = 'LIST' | 'DETAIL' | 'ABOUT' | 'EDITOR';
