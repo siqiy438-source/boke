@@ -47,6 +47,7 @@ const Header = ({
             onClick={() => {
               setView('LIST');
               setCurrentCategory(Category.ALL);
+              setSearchQuery('');
               window.scrollTo(0,0);
             }}
           >
@@ -821,13 +822,23 @@ const App = () => {
   const [currentCategory, setCurrentCategory] = useState<Category>(Category.ALL);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // 原始数据状态 - 存储所有文章的原始数据，永远不应该被 Filter 函数修改
+  const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
+  // 显示数据状态 - 用于渲染列表，由 Filter 函数更新
+  const [displayPosts, setDisplayPosts] = useState<BlogPost[]>([]);
+  
   // Local Storage for new posts
   const [localPosts, setLocalPosts] = useState<BlogPost[]>([]);
   // Category overrides for published posts (and optionally any post) stored in browser
   const [categoryOverrides, setCategoryOverrides] = useState<Record<string, Category>>({});
 
+  // 组件 Mount 时初始化数据并重置筛选状态
   useEffect(() => {
-    // Load local posts on mount
+    // 1. 重置筛选状态为'全部'
+    setCurrentCategory(Category.ALL);
+    setSearchQuery('');
+    
+    // 2. 加载 local posts
     const saved = localStorage.getItem('local_blog_posts');
     if (saved) {
       try {
@@ -836,13 +847,12 @@ const App = () => {
         console.error("Failed to parse local posts");
       }
     }
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('post_category_overrides');
-    if (saved) {
+    
+    // 3. 加载 category overrides
+    const savedOverrides = localStorage.getItem('post_category_overrides');
+    if (savedOverrides) {
       try {
-        const overrides = JSON.parse(saved);
+        const overrides = JSON.parse(savedOverrides);
         // 清理无效的 categoryOverrides（只保留对应现有文章的覆盖）
         const allPostIds = new Set([...BLOG_POSTS.map(p => p.id)]);
         const validOverrides: Record<string, Category> = {};
@@ -862,6 +872,30 @@ const App = () => {
       }
     }
   }, []);
+
+  // 当 localPosts 或 categoryOverrides 变化时，更新 allPosts（原始数据）
+  useEffect(() => {
+    const merged = [...localPosts, ...BLOG_POSTS];
+    const postsWithOverrides = merged.map(p => {
+      // 应用 categoryOverride（如果存在）
+      const overriddenCategory = categoryOverrides[p.id];
+      return overriddenCategory ? { ...p, category: overriddenCategory } : p;
+    });
+    setAllPosts(postsWithOverrides);
+  }, [localPosts, categoryOverrides]);
+
+  // Filter 函数：根据 currentCategory 和 searchQuery 更新 displayPosts
+  // 这个函数只更新 displayPosts，永远不触碰 allPosts
+  useEffect(() => {
+    const filtered = allPosts.filter(post => {
+      const matchesCategory = currentCategory === Category.ALL || post.category === currentCategory;
+      const matchesSearch = searchQuery.trim() === '' || 
+                            post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            post.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    });
+    setDisplayPosts(filtered);
+  }, [allPosts, currentCategory, searchQuery]);
 
   const persistCategoryOverrides = (updater: Record<string, Category> | ((prev: Record<string, Category>) => Record<string, Category>)) => {
     setCategoryOverrides(prev => {
@@ -909,26 +943,6 @@ const App = () => {
     }
   }, [darkMode]);
 
-  // Combine static posts and local posts
-  const allPosts = useMemo(() => {
-    const merged = [...localPosts, ...BLOG_POSTS];
-    return merged.map(p => {
-      // 应用 categoryOverride（如果存在）
-      const overriddenCategory = categoryOverrides[p.id];
-      return overriddenCategory ? { ...p, category: overriddenCategory } : p;
-    });
-  }, [localPosts, categoryOverrides]);
-
-  // Filter Logic
-  const filteredPosts = useMemo(() => {
-    return allPosts.filter(post => {
-      const matchesCategory = currentCategory === Category.ALL || post.category === currentCategory;
-      const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            post.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
-    });
-  }, [currentCategory, searchQuery, allPosts]);
-
   // Navigation Handlers
   const handleCardClick = (id: string) => {
     setActivePostId(id);
@@ -939,11 +953,10 @@ const App = () => {
   const handleBack = () => {
     setView('LIST');
     setActivePostId(null);
-    setCurrentCategory(Category.ALL); // 重置为显示所有分类
-    setSearchQuery(''); // 清空搜索
+    // 重置筛选状态 - Filter 函数会自动更新 displayPosts
+    setCurrentCategory(Category.ALL);
+    setSearchQuery('');
     window.scrollTo(0, 0);
-    // 强制清理可能影响显示的 categoryOverrides
-    // 这里不直接修改 categoryOverrides，而是通过确保 allPosts 正确计算来解决
   };
 
   return (
@@ -967,9 +980,9 @@ const App = () => {
                  <FilterBar currentCategory={currentCategory} setCategory={setCurrentCategory} />
               </div>
 
-              {filteredPosts.length > 0 ? (
+              {displayPosts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {filteredPosts.map(post => (
+                  {displayPosts.map(post => (
                     <BlogCard 
                       key={post.id} 
                       post={post} 
@@ -1001,7 +1014,12 @@ const App = () => {
              localPosts={localPosts}
              onUpdate={handleUpdateLocalPost}
              onClear={handleClearLocalPosts}
-             onBack={() => setView('LIST')}
+             onBack={() => {
+               setView('LIST');
+               setCurrentCategory(Category.ALL);
+               setSearchQuery('');
+               window.scrollTo(0, 0);
+             }}
            />
         )}
 
