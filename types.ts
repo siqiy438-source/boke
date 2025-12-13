@@ -28,7 +28,7 @@ export interface PersonalInfo {
     title: string;
     description: string;
   }[];
-  socialLinks: {
+  socialLinks?: {
     twitter?: string;
     github?: string;
     email?: string;

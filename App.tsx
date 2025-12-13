@@ -79,7 +79,10 @@ const Header = ({
               </button>
             ))}
             <button 
-               onClick={() => setView('ABOUT')}
+               onClick={() => {
+                 setView('ABOUT');
+                 window.scrollTo(0, 0);
+               }}
                className="text-sm font-medium text-slate-600 dark:text-stone-400 hover:text-brand-orange transition-colors"
             >
               关于我
@@ -120,7 +123,10 @@ const Header = ({
 
              {/* Editor Mode Button */}
              <button 
-              onClick={() => setView('EDITOR')}
+              onClick={() => {
+                setView('EDITOR');
+                window.scrollTo(0, 0);
+              }}
               className="p-2 rounded-full hover:bg-stone-200 dark:hover:bg-slate-800 transition-colors text-brand-orange bg-orange-50 dark:bg-orange-900/20"
               title="写文章"
             >
@@ -185,6 +191,7 @@ const Header = ({
                 onClick={() => {
                   setView('ABOUT');
                   setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
                 }}
                 className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-600 dark:text-stone-400 hover:text-brand-orange"
               >
@@ -194,6 +201,7 @@ const Header = ({
                 onClick={() => {
                   setView('EDITOR');
                   setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
                 }}
                 className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-brand-orange hover:bg-orange-50 dark:hover:bg-slate-800"
               >
@@ -916,6 +924,9 @@ const App = () => {
   const handleBack = () => {
     setView('LIST');
     setActivePostId(null);
+    setCurrentCategory(Category.ALL); // 重置为显示所有分类
+    setSearchQuery(''); // 清空搜索
+    window.scrollTo(0, 0);
   };
 
   return (
