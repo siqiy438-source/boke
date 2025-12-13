@@ -16,6 +16,7 @@ const Header = ({
   darkMode, 
   toggleDarkMode, 
   setView, 
+  view,
   currentCategory, 
   setCurrentCategory,
   searchQuery,
@@ -24,6 +25,7 @@ const Header = ({
   darkMode: boolean; 
   toggleDarkMode: () => void;
   setView: (v: ViewState) => void;
+  view: ViewState;
   currentCategory: Category;
   setCurrentCategory: (c: Category) => void;
   searchQuery: string;
@@ -1008,6 +1010,7 @@ const App = () => {
         darkMode={darkMode} 
         toggleDarkMode={() => setDarkMode(!darkMode)} 
         setView={setView}
+        view={view}
         currentCategory={currentCategory}
         setCurrentCategory={setCurrentCategory}
         searchQuery={searchQuery}
