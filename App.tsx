@@ -742,6 +742,15 @@ const AboutSection = () => {
     }
   };
 
+  // 防御性检查
+  if (!PERSONAL_INFO) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <p className="text-center text-red-500">个人信息配置加载失败，请检查 constants.ts 文件</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-12 animate-in fade-in duration-500">
       <div className="text-center mb-12">
@@ -753,13 +762,13 @@ const AboutSection = () => {
       </div>
 
       <div className="space-y-8 text-lg text-slate-700 dark:text-stone-300 leading-relaxed bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-700">
-        {PERSONAL_INFO.introduction.map((paragraph, index) => (
+        {PERSONAL_INFO.introduction && PERSONAL_INFO.introduction.map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}
         
         <h3 className="text-xl font-bold font-serif text-slate-900 dark:text-white mt-8">我的专栏规划</h3>
         <ul className="space-y-4">
-          {PERSONAL_INFO.columns.map((column, index) => {
+          {PERSONAL_INFO.columns && PERSONAL_INFO.columns.map((column, index) => {
             const IconComponent = getIconComponent(column.icon);
             return (
               <li key={index} className="flex items-start gap-3">
@@ -774,17 +783,17 @@ const AboutSection = () => {
         </ul>
         
         <div className="flex justify-center gap-6 mt-12 pt-8 border-t border-stone-100 dark:border-slate-700">
-          {PERSONAL_INFO.socialLinks.twitter && (
+          {PERSONAL_INFO.socialLinks?.twitter && (
             <a href={PERSONAL_INFO.socialLinks.twitter} className="text-slate-400 hover:text-brand-orange transition-colors">
               <Twitter size={24}/>
             </a>
           )}
-          {PERSONAL_INFO.socialLinks.github && (
+          {PERSONAL_INFO.socialLinks?.github && (
             <a href={PERSONAL_INFO.socialLinks.github} className="text-slate-400 hover:text-brand-orange transition-colors">
               <Github size={24}/>
             </a>
           )}
-          {PERSONAL_INFO.socialLinks.email && (
+          {PERSONAL_INFO.socialLinks?.email && (
             <a href={PERSONAL_INFO.socialLinks.email} className="text-slate-400 hover:text-brand-orange transition-colors">
               <Mail size={24}/>
             </a>
