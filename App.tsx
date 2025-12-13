@@ -202,7 +202,7 @@ const Header = ({
             >
               首页
             </button>
-            {categories.map((cat) => (
+            {navCategories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
