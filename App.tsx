@@ -842,9 +842,23 @@ const App = () => {
     const saved = localStorage.getItem('post_category_overrides');
     if (saved) {
       try {
-        setCategoryOverrides(JSON.parse(saved));
+        const overrides = JSON.parse(saved);
+        // 清理无效的 categoryOverrides（只保留对应现有文章的覆盖）
+        const allPostIds = new Set([...BLOG_POSTS.map(p => p.id)]);
+        const validOverrides: Record<string, Category> = {};
+        Object.entries(overrides).forEach(([id, category]) => {
+          if (allPostIds.has(id)) {
+            validOverrides[id] = category as Category;
+          }
+        });
+        setCategoryOverrides(validOverrides);
+        // 如果清理了数据，更新 localStorage
+        if (Object.keys(validOverrides).length !== Object.keys(overrides).length) {
+          localStorage.setItem('post_category_overrides', JSON.stringify(validOverrides));
+        }
       } catch (e) {
         console.error("Failed to parse category overrides");
+        setCategoryOverrides({});
       }
     }
   }, []);
@@ -899,6 +913,7 @@ const App = () => {
   const allPosts = useMemo(() => {
     const merged = [...localPosts, ...BLOG_POSTS];
     return merged.map(p => {
+      // 应用 categoryOverride（如果存在）
       const overriddenCategory = categoryOverrides[p.id];
       return overriddenCategory ? { ...p, category: overriddenCategory } : p;
     });
@@ -927,6 +942,8 @@ const App = () => {
     setCurrentCategory(Category.ALL); // 重置为显示所有分类
     setSearchQuery(''); // 清空搜索
     window.scrollTo(0, 0);
+    // 强制清理可能影响显示的 categoryOverrides
+    // 这里不直接修改 categoryOverrides，而是通过确保 allPosts 正确计算来解决
   };
 
   return (
