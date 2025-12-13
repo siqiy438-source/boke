@@ -63,6 +63,21 @@ const Header = ({
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex space-x-8 items-center">
+            <button
+              onClick={() => {
+                setView('LIST');
+                setCurrentCategory(Category.ALL);
+                setSearchQuery('');
+                window.scrollTo(0, 0);
+              }}
+              className={`text-sm font-medium transition-colors hover:text-brand-orange ${
+                currentCategory === Category.ALL && view === 'LIST'
+                  ? 'text-brand-orange' 
+                  : 'text-slate-600 dark:text-stone-400'
+              }`}
+            >
+              首页
+            </button>
             {navCategories.map((cat) => (
               <button
                 key={cat}
@@ -171,6 +186,22 @@ const Header = ({
               </div>
            </div>
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <button
+              onClick={() => {
+                setView('LIST');
+                setCurrentCategory(Category.ALL);
+                setSearchQuery('');
+                setIsMenuOpen(false);
+                window.scrollTo(0, 0);
+              }}
+              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
+                currentCategory === Category.ALL && view === 'LIST'
+                  ? 'text-brand-orange bg-orange-50 dark:bg-slate-800'
+                  : 'text-slate-600 dark:text-stone-400 hover:text-brand-orange'
+              }`}
+            >
+              首页
+            </button>
             {categories.map((cat) => (
               <button
                 key={cat}
