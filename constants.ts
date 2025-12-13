@@ -25,7 +25,7 @@ export const PERSONAL_INFO: PersonalInfo = {
       title: '财富逻辑：',
       description: '反脆弱投资笔记，建立属于年轻人的金融风控体系。'
     }
-  ]
+  ]，
 };
 
 export const BLOG_POSTS: BlogPost[] = [
