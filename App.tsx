@@ -251,7 +251,13 @@ const FilterBar = ({
 };
 
 // 4. Blog Card
-const BlogCard = ({ post, onClick }: { post: BlogPost; onClick: () => void }) => {
+const BlogCard = ({ post, onClick, onUpdateCategory }: { 
+  post: BlogPost; 
+  onClick: () => void;
+  onUpdateCategory?: (postId: string, category: Category) => void;
+}) => {
+  const isLocalPost = post.id.startsWith('local-');
+  
   // Mapping categories to icons
   const getIcon = (cat: Category) => {
     switch(cat) {
@@ -260,6 +266,13 @@ const BlogCard = ({ post, onClick }: { post: BlogPost; onClick: () => void }) =>
       case Category.WEALTH: return <TrendingUp size={14} />;
       case Category.READING: return <BookOpen size={14} />;
       default: return <BookOpen size={14} />;
+    }
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    e.stopPropagation(); // 阻止触发卡片点击
+    if (onUpdateCategory) {
+      onUpdateCategory(post.id, e.target.value as Category);
     }
   };
 
@@ -281,11 +294,24 @@ const BlogCard = ({ post, onClick }: { post: BlogPost; onClick: () => void }) =>
             <BookOpen size={48} />
           </div>
         )}
-        <div className="absolute top-3 left-3">
-           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-stone-200 backdrop-blur-sm shadow-sm">
-             {getIcon(post.category)}
-             {post.category}
-           </span>
+        <div className="absolute top-3 left-3 flex items-center gap-2">
+           {isLocalPost && onUpdateCategory ? (
+             <select
+               value={post.category}
+               onChange={handleCategoryChange}
+               onClick={(e) => e.stopPropagation()}
+               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-stone-200 backdrop-blur-sm shadow-sm border-0 cursor-pointer hover:bg-white dark:hover:bg-slate-800 focus:ring-2 focus:ring-brand-orange outline-none"
+             >
+               {Object.values(Category).filter(c => c !== Category.ALL).map(c => (
+                 <option key={c} value={c}>{c}</option>
+               ))}
+             </select>
+           ) : (
+             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-stone-200 backdrop-blur-sm shadow-sm">
+               {getIcon(post.category)}
+               {post.category}
+             </span>
+           )}
         </div>
       </div>
 
@@ -317,7 +343,12 @@ const BlogCard = ({ post, onClick }: { post: BlogPost; onClick: () => void }) =>
 };
 
 // 5. Article Detail View
-const ArticleView = ({ post, onBack }: { post: BlogPost; onBack: () => void }) => {
+const ArticleView = ({ post, onBack, onUpdateCategory }: { 
+  post: BlogPost; 
+  onBack: () => void;
+  onUpdateCategory?: (postId: string, category: Category) => void;
+}) => {
+  const isLocalPost = post.id.startsWith('local-');
   // Simple markdown-to-html simulator for the demo
   const renderContent = (content: string) => {
     return content.split('\n').map((line, idx) => {
@@ -341,10 +372,22 @@ const ArticleView = ({ post, onBack }: { post: BlogPost; onBack: () => void }) =
 
       <article>
         <div className="mb-8">
-           <div className="flex gap-2 mb-4">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-brand-orange/10 text-brand-orange">
-              {post.category}
-            </span>
+           <div className="flex gap-2 mb-4 items-center">
+            {isLocalPost && onUpdateCategory ? (
+              <select
+                value={post.category}
+                onChange={(e) => onUpdateCategory(post.id, e.target.value as Category)}
+                className="px-3 py-1 rounded-full text-xs font-semibold bg-brand-orange/10 text-brand-orange border-0 cursor-pointer hover:bg-brand-orange/20 focus:ring-2 focus:ring-brand-orange outline-none"
+              >
+                {Object.values(Category).filter(c => c !== Category.ALL).map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-brand-orange/10 text-brand-orange">
+                {post.category}
+              </span>
+            )}
            </div>
            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-slate-900 dark:text-stone-50 mb-6 leading-tight">
              {post.title}
@@ -847,7 +890,8 @@ const App = () => {
                     <BlogCard 
                       key={post.id} 
                       post={post} 
-                      onClick={() => handleCardClick(post.id)} 
+                      onClick={() => handleCardClick(post.id)}
+                      onUpdateCategory={post.id.startsWith('local-') ? (postId, category) => handleUpdateLocalPost(postId, { category }) : undefined}
                     />
                   ))}
                 </div>
@@ -863,7 +907,8 @@ const App = () => {
         {view === 'DETAIL' && activePostId && (
           <ArticleView 
             post={allPosts.find(p => p.id === activePostId)!} 
-            onBack={handleBack} 
+            onBack={handleBack}
+            onUpdateCategory={(postId, category) => handleUpdateLocalPost(postId, { category })}
           />
         )}
         
