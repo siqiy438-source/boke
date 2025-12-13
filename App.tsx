@@ -219,6 +219,9 @@ const Header = ({
 const Hero = () => (
   <div className="relative py-16 sm:py-24 px-4 bg-brand-paper dark:bg-brand-navy transition-colors duration-300">
     <div className="max-w-4xl mx-auto text-center">
+      <p className="text-lg sm:text-xl font-sans font-light text-slate-500 dark:text-slate-400 mb-4 tracking-wide">
+        思奇的创业笔记
+      </p>
       <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-6 tracking-tight">
         探索读书笔记、<br/>
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-amber-500">
