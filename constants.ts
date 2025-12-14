@@ -187,12 +187,10 @@ export const BLOG_POSTS: BlogPost[] = [
     date: '2025-12-14',
     readTime: '8 min',
     coverImage:
-      'https://todaylab.cn/generations/6bd736b5-dcf4-4dc9-ac37-d703699d532f/633063b0-56f0-442a-a454-e43fbb942056_1765103915452.png',
+      'https://todaylab.cn/generations/6bd736b5-dcf4-4dc9-ac37-d703699d532f/b81ce95e-49d9-41c7-bf16-d64977c0f82e_1765690206784.png',
     content: `
 > 这篇是我阶段性的“认知碎片”整理。  
 > 记住一句：不怕慢，就怕断；只要不下牌桌，市场总会有机会。
-
-![配图](https://todaylab.cn/generations/6bd736b5-dcf4-4dc9-ac37-d703699d532f/b81ce95e-49d9-41c7-bf16-d64977c0f82e_1765690206784.png)
 
 1. 我要做的是一个能够穿越周期的产品  
 2. 坚持长期主义 而不是靠一两条爆款  
