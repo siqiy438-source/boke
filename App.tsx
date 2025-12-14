@@ -879,13 +879,12 @@ const AboutSection = () => {
               <div 
                 className="bg-gradient-to-r from-brand-orange to-orange-600 h-3 rounded-full transition-all duration-500 ease-out"
                 style={{ 
-                  width: `${Math.min((daysCount / 365) * 100, 100)}%` 
+                  width: `${Math.min((daysCount / 1000) * 100, 100)}%` 
                 }}
               />
             </div>
-            <div className="flex justify-between items-center mt-2 text-xs text-slate-500 dark:text-stone-400">
+            <div className="flex justify-center items-center mt-2 text-xs text-slate-500 dark:text-stone-400">
               <span>开始日期: 2025-01-25</span>
-              <span>目标: 365天</span>
             </div>
           </div>
         </div>
