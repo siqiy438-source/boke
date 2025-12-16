@@ -270,7 +270,7 @@ export const BLOG_POSTS: BlogPost[] = [
   date: '2025-12-16',
   readTime: '10 min',
   coverImage:
-    '/images/long-term-principles.png',
+    '/images/long-term-principles.jpg',
   content: `这是我用来长期校准决策、对抗情绪波动、穿越周期的一套个人原则与认知底盘。
 它不是口号，而是我在真实行动、失败、复盘中反复验证后沉淀下来的规则。
 
