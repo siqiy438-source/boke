@@ -37,7 +37,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['认知成长', '创业心法', '个人IP', '道心修炼', '自我反思'],
     date: '2025-12-29',
     readTime: '10 min',
-    coverImage: '/images/cognitive-review-1.png',
+    coverImage: 'https://todaylab.cn/generations/6bd736b5-dcf4-4dc9-ac37-d703699d532f/3d926804-e8bd-453a-9574-4633ca0e9e45_1766999112294.png',
     content: `
 ### 写在前面
 
