@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诊断测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: green; }
+        .error { color: red; }
+        h1 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>网站诊断测试页面</h1>
+    
+    <div class="test-box">
+        <h2>✅ 如果你能看到这个页面</h2>
+        <p class="success">说明 Vercel 部署正常工作</p>
+    </div>
+
+    <div class="test-box">
+        <h2>🔍 当前时间</h2>
+        <p id="time"></p>
+    </div>
+
+    <div class="test-box">
+        <h2>📱 浏览器信息</h2>
+        <p id="browser"></p>
+    </div>
+
+    <div class="test-box">
+        <h2>⚠️ 如果主页面空白，可能的原因：</h2>
+        <ol>
+            <li>浏览器缓存问题 - 尝试清除缓存或使用无痕模式</li>
+            <li>JavaScript 未加载 - 检查浏览器控制台是否有错误</li>
+            <li>Vercel 部署延迟 - 等待 2-3 分钟</li>
+            <li>CDN 缓存 - Tailwind CSS CDN 可能需要时间更新</li>
+        </ol>
+    </div>
+
+    <div class="test-box">
+        <h2>🔗 返回主页</h2>
+        <a href="/" style="color: #ea580c; text-decoration: none; font-weight: bold;">← 返回主页</a>
+    </div>
+
+    <script>
+        document.getElementById('time').textContent = new Date().toLocaleString('zh-CN');
+        document.getElementById('browser').textContent = navigator.userAgent;
+    </script>
+</body>
+</html>
+
+
+
