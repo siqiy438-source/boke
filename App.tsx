@@ -53,8 +53,21 @@ const Header = ({
               window.scrollTo(0,0);
             }}
           >
-            <div className="w-8 h-8 bg-brand-orange rounded-lg flex items-center justify-center text-white font-bold serif-text">
-              思
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-400 to-green-400 shadow-sm">
+              <img 
+                src="/images/podcast-icon.png" 
+                alt="播客图标" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // 如果图片加载失败，显示备用图标
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = '<div class="w-full h-full bg-brand-orange rounded-lg flex items-center justify-center text-white font-bold serif-text text-lg">思</div>';
+                  }
+                }}
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-serif font-bold text-xl tracking-tight text-slate-900 dark:text-stone-100">
