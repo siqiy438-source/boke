@@ -261,6 +261,42 @@ const Header = ({
   );
 };
 
+// 2. Reading Progress Card Component
+const ReadingProgressCard = () => {
+  // 计算从2025年1月25号开始坚持的天数
+  const calculateDaysSinceStart = () => {
+    const startDate = new Date('2025-01-25');
+    const today = new Date();
+    // 将时间设置为当天的00:00:00，确保只计算天数差
+    startDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const diffTime = today.getTime() - startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 ? diffDays : 0;
+  };
+
+  const daysCount = calculateDaysSinceStart();
+
+  return (
+    <div className="mt-12 max-w-md mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-stone-200 dark:border-slate-700 p-6 sm:p-8">
+      <div className="text-center mb-4">
+        <h4 className="text-lg font-bold font-serif text-slate-900 dark:text-white mb-2">
+          阅读与成长
+        </h4>
+        <p className="text-sm text-slate-600 dark:text-stone-400 mb-4">
+          从 2025年1月25日 开始，我已经坚持了
+        </p>
+        <div className="text-4xl font-bold text-brand-orange mb-2">
+          {daysCount}
+        </div>
+        <p className="text-sm text-slate-600 dark:text-stone-400">
+          天
+        </p>
+      </div>
+    </div>
+  );
+};
+
 // 2. Hero Section
 const Hero = () => (
   <div className="relative py-16 sm:py-24 px-4 bg-brand-paper dark:bg-brand-navy transition-colors duration-300">
@@ -274,6 +310,7 @@ const Hero = () => (
       <p className="mt-4 text-xl text-slate-600 dark:text-stone-400 max-w-2xl mx-auto font-light">
         一个23岁创业者的思考记录。关于心智成长、商业实战与财富积累。
       </p>
+      <ReadingProgressCard />
     </div>
   </div>
 );
@@ -797,20 +834,6 @@ const AboutSection = () => {
     }
   };
 
-  // 计算从2025年1月25号开始坚持的天数
-  const calculateDaysSinceStart = () => {
-    const startDate = new Date('2025-01-25');
-    const today = new Date();
-    // 将时间设置为当天的00:00:00，确保只计算天数差
-    startDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    const diffTime = today.getTime() - startDate.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays >= 0 ? diffDays : 0;
-  };
-
-  const daysCount = calculateDaysSinceStart();
-
   // 防御性检查
   if (!PERSONAL_INFO) {
     return (
@@ -867,39 +890,6 @@ const AboutSection = () => {
               <Mail size={24}/>
             </a>
           )}
-        </div>
-
-        {/* 坚持天数进度条 */}
-        <div className="mt-12 pt-8 border-t border-stone-100 dark:border-slate-700">
-          <div className="text-center mb-4">
-            <h4 className="text-lg font-bold font-serif text-slate-900 dark:text-white mb-2">
-              阅读与成长
-            </h4>
-            <p className="text-sm text-slate-600 dark:text-stone-400 mb-4">
-              从 2025年1月25日 开始，我已经坚持了
-            </p>
-            <div className="text-4xl font-bold text-brand-orange mb-2">
-              {daysCount}
-            </div>
-            <p className="text-sm text-slate-600 dark:text-stone-400">
-              天
-            </p>
-          </div>
-          
-          {/* 进度条 */}
-          <div className="mt-6">
-            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-brand-orange to-orange-600 h-3 rounded-full transition-all duration-500 ease-out"
-                style={{ 
-                  width: `${Math.min((daysCount / 1000) * 100, 100)}%` 
-                }}
-              />
-            </div>
-            <div className="flex justify-center items-center mt-2 text-xs text-slate-500 dark:text-stone-400">
-              <span>开始日期: 2025-01-25</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
