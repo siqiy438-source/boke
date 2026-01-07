@@ -5,7 +5,8 @@ import {
   Sun, 
   Menu, 
   X, 
-  ArrowLeft, 
+  ArrowLeft,
+  ArrowUp,
   BookOpen, 
   TrendingUp, 
   Brain, 
@@ -14,15 +15,7 @@ import {
   Github,
   Mail,
   Clock,
-  Calendar,
-  PenTool,
-  Plus,
-  Trash2,
-  Save,
-  Download,
-  FileJson,
-  Shuffle,
-  Upload
+  Calendar
 } from 'lucide-react';
 
 export { 
@@ -31,7 +24,8 @@ export {
   Sun, 
   Menu, 
   X, 
-  ArrowLeft, 
+  ArrowLeft,
+  ArrowUp,
   BookOpen, 
   TrendingUp, 
   Brain, 
@@ -40,13 +34,5 @@ export {
   Github,
   Mail,
   Clock,
-  Calendar,
-  PenTool,
-  Plus,
-  Trash2,
-  Save,
-  Download,
-  FileJson,
-  Shuffle,
-  Upload
+  Calendar
 };
