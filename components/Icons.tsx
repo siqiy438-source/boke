@@ -15,7 +15,14 @@ import {
   Github,
   Mail,
   Clock,
-  Calendar
+  Calendar,
+  User,
+  Lock,
+  AlertCircle,
+  CheckCircle,
+  LogOut,
+  Settings,
+  Bookmark
 } from 'lucide-react';
 
 export { 
@@ -34,5 +41,12 @@ export {
   Github,
   Mail,
   Clock,
-  Calendar
+  Calendar,
+  User,
+  Lock,
+  AlertCircle,
+  CheckCircle,
+  LogOut,
+  Settings,
+  Bookmark
 };

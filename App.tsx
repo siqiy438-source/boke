@@ -2,10 +2,12 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Search, Moon, Sun, Menu, X, ArrowLeft, ArrowUp,
   BookOpen, TrendingUp, Brain, Briefcase,
-  Twitter, Github, Mail, Clock, Calendar
+  Twitter, Github, Mail, Clock, Calendar, User, LogOut
 } from './components/Icons';
 import { BLOG_POSTS, PERSONAL_INFO } from './constants';
 import { BlogPost, Category, ViewState } from './types';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthModal } from './components/AuthModal';
 
 // --- Components ---
 
@@ -18,7 +20,8 @@ const Header = ({
   currentCategory, 
   setCurrentCategory,
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  onAuthClick
 }: { 
   darkMode: boolean; 
   toggleDarkMode: () => void;
@@ -28,13 +31,21 @@ const Header = ({
   setCurrentCategory: (c: Category) => void;
   searchQuery: string;
   setSearchQuery: (s: string) => void;
+  onAuthClick: () => void;
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { user, signOut } = useAuth();
 
   const categories = Object.values(Category);
-  // 导航栏显示顺序：读书笔记、心智成长、商业思考
+  // 导航栏显示顺序:读书笔记、心智成长、商业思考
   const navCategories = [Category.READING, Category.MIND, Category.BUSINESS];
+
+  const handleSignOut = async () => {
+    await signOut();
+    setShowUserMenu(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/70 dark:bg-slate-950/70 border-b border-stone-200/50 dark:border-slate-700/50 transition-all duration-300 shadow-sm">
@@ -120,7 +131,43 @@ const Header = ({
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* User Menu / Login Button */}
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 p-2 rounded-full hover:bg-stone-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-stone-400"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-orange to-amber-500 flex items-center justify-center text-white text-sm font-medium">
+                    {user.email?.[0].toUpperCase()}
+                  </div>
+                </button>
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-stone-200 dark:border-slate-700 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-2 border-b border-stone-200 dark:border-slate-700">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
+                    >
+                      <LogOut size={16} />
+                      退出登录
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={onAuthClick}
+                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-brand-orange to-amber-500 text-white text-sm font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
+              >
+                <User size={16} />
+                登录
+              </button>
+            )}
+
             {/* Search Input (Desktop) */}
             <div className={`hidden md:flex items-center transition-all duration-300 ${isSearchOpen ? 'w-64' : 'w-8'}`}>
               {isSearchOpen ? (
@@ -211,6 +258,37 @@ const Header = ({
       {isMenuOpen && (
         <div className="md:hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-stone-200/50 dark:border-slate-700/50">
           <div className="px-2 pt-4 pb-3 space-y-1 sm:px-3">
+            {/* Mobile Login Button */}
+            {!user && (
+              <button
+                onClick={() => {
+                  onAuthClick();
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-brand-orange to-amber-500 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 min-h-[44px] mb-2"
+              >
+                <div className="flex items-center gap-2">
+                  <User size={18} />
+                  登录 / 注册
+                </div>
+              </button>
+            )}
+            {user && (
+              <div className="mb-2 px-3 py-2 rounded-md bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">已登录</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300 truncate mb-2">{user.email}</p>
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-3 py-2 rounded-md text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-stone-100 dark:hover:bg-slate-600 transition-colors flex items-center gap-2 justify-center"
+                >
+                  <LogOut size={16} />
+                  退出登录
+                </button>
+              </div>
+            )}
             <button
               onClick={() => {
                 setView('LIST');
@@ -625,12 +703,13 @@ const AboutSection = () => {
 
 // --- Main App Logic ---
 
-const App = () => {
+const AppContent = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [view, setView] = useState<ViewState>('LIST');
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [currentCategory, setCurrentCategory] = useState<Category>(Category.ALL);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
   // 显示数据状态 - 用于渲染列表，由 Filter 函数更新
   const [displayPosts, setDisplayPosts] = useState<BlogPost[]>(BLOG_POSTS);
@@ -681,6 +760,13 @@ const App = () => {
         setCurrentCategory={setCurrentCategory}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        onAuthClick={() => setIsAuthModalOpen(true)}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
       />
 
       <main className="flex-grow">
@@ -734,6 +820,15 @@ const App = () => {
         </div>
       </footer>
     </div>
+  );
+};
+
+// Wrap with AuthProvider
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
