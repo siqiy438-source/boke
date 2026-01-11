@@ -37,7 +37,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['商业思考', '实体店经营', '价格策略', '产品力', '准时出摊', '客户转化', '道心修炼'],
     date: '2026-01-11',
     readTime: '8 min',
-    coverImage: '/images/long-term-principles.jpg',
+    coverImage: '/images/noise-success-story.png',
     content: `
 我越来越不喜欢「热闹的成功故事了」
 
