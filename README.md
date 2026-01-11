@@ -82,6 +82,7 @@
 - [使用说明](./使用说明.md) - 功能使用说明
 - [集成总结](./集成总结.md) - 技术架构和实现细节
 - [部署检查清单](./部署检查清单.md) - 上线前检查
+- [GitHub Pages 部署指南](./GITHUB_PAGES_SETUP.md) - GitHub Pages 部署详细步骤
 
 ## 🎯 核心功能
 
@@ -120,6 +121,16 @@
 - XSS 防护
 
 ## 🚀 部署
+
+### GitHub Pages 部署
+
+1. 推送代码到 GitHub
+2. 在仓库 Settings > Pages 中启用 GitHub Pages
+3. 选择 GitHub Actions 作为部署源
+4. 推送代码到 main 分支，自动触发部署
+5. 查看部署状态和访问链接
+
+详细步骤请查看：[GitHub Pages 部署指南](./GITHUB_PAGES_SETUP.md)
 
 ### Vercel 部署
 
