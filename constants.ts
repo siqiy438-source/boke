@@ -32,12 +32,12 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: 'noise-success-story-2026-01-11',
     title: '我越来越不喜欢「热闹的成功故事了」',
-    excerpt: '热闹的成功故事往往只是表面繁荣。便宜货天生自带流量，但只有价格优势；高端货筛选客户，但产品力才是核心。准时出摊、做好产品力、维护老客户，才是长久之道。',
+    excerpt: '热闹的成功故事往往只是表面繁荣。便宜货天生自带流量，但只有价格优势；高端货筛选客户，但产品力才是核心。准时出摊、做好产品力、维护老客户,才是长久之道。',
     category: Category.BUSINESS,
     tags: ['商业思考', '实体店经营', '价格策略', '产品力', '准时出摊', '客户转化', '道心修炼'],
     date: '2026-01-11',
     readTime: '8 min',
-    coverImage: 'https://todaylab.cn/generations/6bd736b5-dcf4-4dc9-ac37-d703699d532f/long-term-principles.jpg',
+    coverImage: '/images/long-term-principles.jpg',
     content: `
 我越来越不喜欢「热闹的成功故事了」
 
