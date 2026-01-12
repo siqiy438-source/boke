@@ -3,7 +3,7 @@ import { BlogPost, Category, PersonalInfo } from './types';
 // 个人信息配置 - 在这里修改你的头像和个人简历
 export const PERSONAL_INFO: PersonalInfo = {
   name: '袁思奇',
-  avatarUrl: 'https://todaylab.cn/generations/6bd736b5-dcf4-4dc9-ac37-d703699d532f/a73e70c0-9a7b-4727-a417-b509ff01771b_1765604025983.png', // 修改这里的链接来更换头像
+  avatarUrl: 'https://todaylab.cn/generations/4411d6e2-f2d5-413d-8536-a072b089fd7c.png?x-oss-process=image/resize,w_800,m_lfit/format,webp/quality,q_90', // 修改这里的链接来更换头像
   subtitle: '23岁 / 创业者 / 终身学习者',
   introduction: [
     '你好，欢迎来到我的个人感悟。',
