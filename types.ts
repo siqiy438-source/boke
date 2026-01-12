@@ -35,4 +35,4 @@ export interface PersonalInfo {
   };
 }
 
-export type ViewState = 'LIST' | 'DETAIL' | 'ABOUT' | 'EDITOR';
+export type ViewState = 'LIST' | 'DETAIL' | 'ABOUT' | 'EDITOR' | 'TIMELINE';

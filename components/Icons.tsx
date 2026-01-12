@@ -23,7 +23,8 @@ import {
   LogOut,
   Settings,
   Save,
-  Check
+  Check,
+  Network
 } from 'lucide-react';
 
 export { 
@@ -50,5 +51,7 @@ export {
   LogOut,
   Settings,
   Save,
-  Check
+  Check,
+  Network,
+  Calendar as Timeline
 };

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import * as d3 from 'd3';
 import { 
   Search, Moon, Sun, Menu, X, ArrowLeft, ArrowUp,
   BookOpen, TrendingUp, Brain, Briefcase,
-  Twitter, Github, Mail, Clock, Calendar, User, LogOut, Settings
+  Twitter, Github, Mail, Clock, Calendar, User, LogOut, Settings, Timeline, Network
 } from './components/Icons';
 import { BLOG_POSTS, PERSONAL_INFO } from './constants';
 import { BlogPost, Category, ViewState, PersonalInfo } from './types';
@@ -11,6 +12,113 @@ import { AuthModal } from './components/AuthModal';
 import { Editor } from './components/Editor';
 
 // --- Components ---
+
+// 0. Animated Background Component
+const AnimatedBackground = ({ darkMode }: { darkMode: boolean }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let particles: Particle[] = [];
+
+    // 设置画布大小
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      // 根据屏幕大小调整粒子数量
+      const particleCount = Math.min(
+        Math.floor((window.innerWidth * window.innerHeight) / 25000),
+        100
+      );
+      initParticles(particleCount);
+    };
+
+    // 粒子类
+    class Particle {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      size: number;
+      opacity: number;
+      color: string;
+
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.size = Math.random() * 2 + 1;
+        this.opacity = Math.random() * 0.3 + 0.1;
+        // 根据深色/浅色模式设置粒子颜色
+        this.color = darkMode ? '255, 255, 255' : '100, 116, 139';
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // 边界检测，粒子碰到边界反弹
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color}, ${this.opacity})`;
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+
+    // 初始化粒子
+    const initParticles = (count: number) => {
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle());
+      }
+    };
+
+    // 动画循环
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 绘制粒子
+      particles.forEach((particle, index) => {
+        particle.update();
+        particle.draw();
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    // 初始化
+    resizeCanvas();
+    animate();
+
+    // 监听窗口大小变化
+    const handleResize = () => {
+      resizeCanvas();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // 清理
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [darkMode]);
+
+  return <canvas ref={canvasRef} className="particle-background" />;
+};
 
 // 1. Navigation / Header
 const Header = ({ 
@@ -131,6 +239,18 @@ const Header = ({
             >
               关于我
             </button>
+            <button 
+               onClick={() => {
+                 setView('TIMELINE');
+                 window.scrollTo(0, 0);
+               }}
+               className="text-sm font-medium text-slate-600 dark:text-stone-400 hover:text-brand-orange transition-all duration-200 hover:scale-105"
+            >
+              <span className="flex items-center gap-1.5">
+                <Timeline size={16} />
+                时间线
+              </span>
+              </button>
           </nav>
 
           {/* Right Actions */}
@@ -345,6 +465,19 @@ const Header = ({
               >
                 关于我
               </button>
+             <button
+                onClick={() => {
+                  setView('TIMELINE');
+                  setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-600 dark:text-stone-400 hover:text-brand-orange transition-all duration-200 hover:scale-[1.02] hover:bg-stone-50 dark:hover:bg-slate-800/50 active:scale-95 min-h-[44px]"
+              >
+                <div className="flex items-center gap-2">
+                  <Timeline size={18} />
+                  时间线
+                </div>
+              </button>
           </div>
         </div>
       )}
@@ -478,7 +611,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, onClick }) => {
   return (
     <div 
       onClick={onClick}
-      className="group cursor-pointer flex flex-col bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-stone-200/50 dark:border-slate-700/50 h-full touch-manipulation"
+      className="group cursor-pointer flex flex-col bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] hover:rotate-1 active:scale-[0.98] transition-all duration-500 border border-stone-200/50 dark:border-slate-700/50 h-full touch-manipulation will-change-transform"
     >
       {/* Image Container */}
       <div className="relative h-40 sm:h-48 overflow-hidden bg-stone-200 dark:bg-slate-700">
@@ -487,7 +620,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, onClick }) => {
             src={post.coverImage} 
             alt={post.title} 
             loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-400">
@@ -509,7 +642,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, onClick }) => {
           <span className="flex items-center gap-1"><Clock size={12}/> {post.readTime}</span>
         </div>
 
-        <h3 className="text-lg sm:text-xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-3 group-hover:text-brand-orange transition-colors line-clamp-2">
+        <h3 className="text-lg sm:text-xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-3 group-hover:text-brand-orange transition-colors duration-300 line-clamp-2">
           {post.title}
         </h3>
         
@@ -519,7 +652,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, onClick }) => {
 
         <div className="flex flex-wrap gap-2 mt-auto">
           {post.tags.map(tag => (
-            <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-stone-100/80 dark:bg-slate-700/80 backdrop-blur-sm text-slate-500 dark:text-stone-400 border border-stone-200/50 dark:border-slate-600/50">
+            <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-stone-100/80 dark:bg-slate-700/80 backdrop-blur-sm text-slate-500 dark:text-stone-400 border border-stone-200/50 dark:border-slate-600/50 hover:scale-110 hover:bg-brand-orange/10 hover:text-brand-orange transition-all duration-300 cursor-default">
               #{tag}
             </span>
           ))}
@@ -796,6 +929,164 @@ const AboutSection = ({ personalInfo, blogPosts, setView, setCurrentCategory }: 
   );
 };
 
+// 8. Timeline View
+const TimelineView = ({ posts, onCardClick }: { 
+  posts: BlogPost[]; 
+  onCardClick: (id: string) => void;
+}) => {
+  // 按日期分组文章
+  const groupPostsByDate = (posts: BlogPost[]) => {
+    const grouped: Record<string, BlogPost[]> = {};
+    
+    posts.forEach(post => {
+      const date = new Date(post.date);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const key = `${year}年${month}月`;
+      
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(post);
+    });
+    
+    // 对每个组内的文章按日期排序（新的在前）
+    Object.keys(grouped).forEach(key => {
+      grouped[key].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    });
+    
+    // 返回排序后的年月组（新的在前）
+    return Object.entries(grouped).sort((a, b) => {
+      const [aYear, aMonth] = a[0].split('年').map(Number);
+      const [bYear, bMonth] = b[0].split('年').map(Number);
+      
+      if (aYear !== bYear) return bYear - aYear;
+      return bMonth - aMonth;
+    });
+  };
+
+  const groupedPosts = groupPostsByDate(posts);
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="text-center mb-12">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-4">
+          成长时间线
+        </h1>
+        <p className="text-lg text-slate-600 dark:text-stone-400">
+          记录每一步思考，见证成长轨迹
+        </p>
+      </div>
+
+      <div className="relative">
+        {/* 桌面端：垂直时间线 */}
+        <div className="hidden md:block">
+          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-orange via-amber-500 to-blue-500"></div>
+          
+          {groupedPosts.map(([month, monthPosts], groupIndex) => (
+            <div key={month} className="mb-12 relative">
+              <div className="absolute left-4 w-8 h-8 rounded-full bg-gradient-to-br from-brand-orange to-amber-500 flex items-center justify-center shadow-lg z-10">
+                <Calendar size={16} className="text-white" />
+              </div>
+              
+              <div className="ml-16">
+                <h2 className="text-2xl font-bold text-brand-orange mb-6 font-serif">{month}</h2>
+                
+                <div className="space-y-8">
+                  {monthPosts.map((post, index) => (
+                    <div key={post.id} className="relative group">
+                      {/* 时间线上的小圆点 - 对齐到卡片中心 */}
+                      <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white dark:bg-slate-800 border-4 border-brand-orange shadow-md z-10"></div>
+                      
+                      <div
+                        onClick={() => onCardClick(post.id)}
+                        className="pl-6 cursor-pointer group-hover:translate-x-2 transition-transform duration-300"
+                      >
+                        <div className="flex items-center gap-2 mb-2 text-sm text-slate-500 dark:text-slate-400">
+                          <Clock size={12} />
+                          {post.date}
+                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          {post.readTime}
+                        </div>
+                        
+                        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-stone-200/50 dark:border-slate-700/50 group-hover:border-brand-orange/50">
+                          <div className="flex items-start gap-4">
+                            {post.coverImage && (
+                              <img 
+                                src={post.coverImage} 
+                                alt={post.title}
+                                className="w-24 h-24 object-cover rounded-xl flex-shrink-0"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <span className="inline-block px-2 py-1 rounded-md text-xs font-semibold bg-brand-orange/10 text-brand-orange mb-2">
+                                {post.category}
+                              </span>
+                              <h3 className="text-lg font-bold text-slate-900 dark:text-stone-100 mb-2 group-hover:text-brand-orange transition-colors font-serif">
+                                {post.title}
+                              </h3>
+                              <p className="text-sm text-slate-600 dark:text-stone-400 line-clamp-2">
+                                {post.excerpt}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 移动端：水平时间线 */}
+        <div className="md:hidden space-y-8">
+          {groupedPosts.map(([month, monthPosts]) => (
+            <div key={month} className="relative">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-8 bg-gradient-to-b from-brand-orange to-amber-500 rounded-full"></div>
+                <h2 className="text-xl font-bold text-brand-orange font-serif">{month}</h2>
+              </div>
+              
+              <div className="space-y-4 pl-4 border-l-2 border-stone-200 dark:border-slate-700">
+                {monthPosts.map((post) => (
+                  <div key={post.id} className="relative group">
+                    <div 
+                      onClick={() => onCardClick(post.id)}
+                      className="cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 mb-1 text-xs text-slate-500 dark:text-slate-400">
+                        <Calendar size={10} />
+                        {post.date}
+                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                        <Clock size={10} />
+                        {post.readTime}
+                      </div>
+                      
+                      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-stone-200/50 dark:border-slate-700/50">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-xs font-semibold bg-brand-orange/10 text-brand-orange mb-2">
+                          {post.category}
+                        </span>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-stone-100 mb-1 group-hover:text-brand-orange transition-colors font-serif">
+                          {post.title}
+                        </h3>
+                        <p className="text-sm text-slate-600 dark:text-stone-400 line-clamp-2">
+                          {post.excerpt}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App Logic ---
 
 const AppContent = () => {
@@ -891,7 +1182,10 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 via-amber-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
-      <Header 
+      <AnimatedBackground darkMode={darkMode} />
+      <div className="animated-gradient-bg fixed inset-0 -z-10" />
+      <div className="main-content flex-1 flex flex-col">
+        <Header 
         darkMode={darkMode} 
         toggleDarkMode={() => setDarkMode(!darkMode)} 
         setView={setView}
@@ -938,6 +1232,13 @@ const AppContent = () => {
           </>
         )}
 
+        {view === 'TIMELINE' && (
+          <TimelineView 
+            posts={blogPosts} 
+            onCardClick={handleCardClick}
+          />
+        )}
+
         {view === 'DETAIL' && activePostId && (
           <ArticleView 
             post={blogPosts.find(p => p.id === activePostId)!} 
@@ -967,6 +1268,7 @@ const AppContent = () => {
           </p>
         </div>
       </footer>
+      </div>
     </div>
   );
 };
