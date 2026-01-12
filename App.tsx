@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Search, Moon, Sun, Menu, X, ArrowLeft, ArrowUp,
   BookOpen, TrendingUp, Brain, Briefcase,
-  Twitter, Github, Mail, Clock, Calendar, User, LogOut
+  Twitter, Github, Mail, Clock, Calendar, User, LogOut, Settings
 } from './components/Icons';
 import { BLOG_POSTS, PERSONAL_INFO } from './constants';
-import { BlogPost, Category, ViewState } from './types';
+import { BlogPost, Category, ViewState, PersonalInfo } from './types';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthModal } from './components/AuthModal';
+import { Editor } from './components/Editor';
 
 // --- Components ---
 
@@ -21,7 +22,8 @@ const Header = ({
   setCurrentCategory,
   searchQuery,
   setSearchQuery,
-  onAuthClick
+  onAuthClick,
+  onEditorClick
 }: { 
   darkMode: boolean; 
   toggleDarkMode: () => void;
@@ -32,6 +34,7 @@ const Header = ({
   searchQuery: string;
   setSearchQuery: (s: string) => void;
   onAuthClick: () => void;
+  onEditorClick: () => void;
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -148,6 +151,16 @@ const Header = ({
                     <div className="px-4 py-2 border-b border-stone-200 dark:border-slate-700">
                       <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                     </div>
+                    <button
+                      onClick={() => {
+                        onEditorClick();
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
+                    >
+                      <Settings size={16} />
+                      编辑配置
+                    </button>
                     <button
                       onClick={handleSignOut}
                       className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
@@ -628,7 +641,9 @@ const ScrollToTopButton = () => {
 };
 
 // 7. About Section (iOS Style)
-const AboutSection = ({ setView, setCurrentCategory }: { 
+const AboutSection = ({ personalInfo, blogPosts, setView, setCurrentCategory }: { 
+  personalInfo: PersonalInfo;
+  blogPosts: BlogPost[];
   setView: (v: ViewState) => void;
   setCurrentCategory: (c: Category) => void;
 }) => {
@@ -675,10 +690,10 @@ const AboutSection = ({ setView, setCurrentCategory }: {
   };
 
   const daysCount = calculateDaysSinceStart();
-  const postsCount = BLOG_POSTS.length;
+  const postsCount = blogPosts.length;
 
   // 防御性检查
-  if (!PERSONAL_INFO) {
+  if (!personalInfo) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16">
         <p className="text-center text-red-500">个人信息配置加载失败，请检查 constants.ts 文件</p>
@@ -691,10 +706,10 @@ const AboutSection = ({ setView, setCurrentCategory }: {
       {/* 核心层：头像 + 姓名 + 副标题 */}
       <div className="text-center mb-8">
         <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-4 border-white/80 dark:border-slate-800/80 shadow-xl backdrop-blur-xl">
-           <img src={PERSONAL_INFO.avatarUrl} alt={PERSONAL_INFO.name} loading="lazy" className="w-full h-full object-cover"/>
+           <img src={personalInfo.avatarUrl} alt={personalInfo.name} loading="lazy" className="w-full h-full object-cover"/>
         </div>
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-white mb-1">{PERSONAL_INFO.name}</h2>
-        <p className="text-slate-500">{PERSONAL_INFO.subtitle}</p>
+        <h2 className="text-2xl font-semibold text-slate-900 dark:text-white mb-1">{personalInfo.name}</h2>
+        <p className="text-slate-500">{personalInfo.subtitle}</p>
       </div>
 
       {/* 核心数据卡片 */}
@@ -753,7 +768,7 @@ const AboutSection = ({ setView, setCurrentCategory }: {
           <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6">
             <h3 className="font-semibold text-slate-900 dark:text-white mb-4">专栏规划</h3>
             <div className="space-y-2">
-              {PERSONAL_INFO.columns && PERSONAL_INFO.columns.map((column, index) => {
+              {personalInfo.columns && personalInfo.columns.map((column, index) => {
                 const IconComponent = getIconComponent(column.icon);
                 return (
                   <button 
@@ -791,13 +806,53 @@ const AppContent = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
+  // 从 localStorage 加载数据，如果没有则使用默认值
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(() => {
+    const saved = localStorage.getItem('personalInfo');
+    return saved ? JSON.parse(saved) : PERSONAL_INFO;
+  });
+  
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => {
+    const saved = localStorage.getItem('blogPosts');
+    return saved ? JSON.parse(saved) : BLOG_POSTS;
+  });
+  
   // 显示数据状态 - 用于渲染列表，由 Filter 函数更新
-  const [displayPosts, setDisplayPosts] = useState<BlogPost[]>(BLOG_POSTS);
+  const [displayPosts, setDisplayPosts] = useState<BlogPost[]>(blogPosts);
+
+  // 监听 localStorage 的变化
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedPersonalInfo = localStorage.getItem('personalInfo');
+      const savedBlogPosts = localStorage.getItem('blogPosts');
+      
+      if (savedPersonalInfo) {
+        setPersonalInfo(JSON.parse(savedPersonalInfo));
+      }
+      
+      if (savedBlogPosts) {
+        const newPosts = JSON.parse(savedBlogPosts);
+        setBlogPosts(newPosts);
+        // 更新显示的文章列表
+        const filtered = newPosts.filter(post => {
+          const matchesCategory = currentCategory === Category.ALL || post.category === currentCategory;
+          const matchesSearch = searchQuery.trim() === '' || 
+                                post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                post.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+          return matchesCategory && matchesSearch;
+        });
+        setDisplayPosts(filtered);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [currentCategory, searchQuery]);
 
 
   // Filter 函数：根据 currentCategory 和 searchQuery 更新 displayPosts
   useEffect(() => {
-    const filtered = BLOG_POSTS.filter(post => {
+    const filtered = blogPosts.filter(post => {
       const matchesCategory = currentCategory === Category.ALL || post.category === currentCategory;
       const matchesSearch = searchQuery.trim() === '' || 
                             post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -805,7 +860,7 @@ const AppContent = () => {
       return matchesCategory && matchesSearch;
     });
     setDisplayPosts(filtered);
-  }, [currentCategory, searchQuery]);
+  }, [currentCategory, searchQuery, blogPosts]);
 
   // Handle Dark Mode Class on Body
   useEffect(() => {
@@ -829,6 +884,11 @@ const AppContent = () => {
     window.scrollTo(0, 0);
   };
 
+  const handleEditorClick = () => {
+    setView('EDITOR');
+    window.scrollTo(0, 0);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 via-amber-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       <Header 
@@ -841,6 +901,7 @@ const AppContent = () => {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onAuthClick={() => setIsAuthModalOpen(true)}
+        onEditorClick={handleEditorClick}
       />
 
       {/* Auth Modal */}
@@ -879,13 +940,20 @@ const AppContent = () => {
 
         {view === 'DETAIL' && activePostId && (
           <ArticleView 
-            post={BLOG_POSTS.find(p => p.id === activePostId)!} 
+            post={blogPosts.find(p => p.id === activePostId)!} 
             onBack={handleBack}
            />
         )}
 
         {view === 'ABOUT' && (
-          <AboutSection setView={setView} setCurrentCategory={setCurrentCategory} />
+          <AboutSection personalInfo={personalInfo} blogPosts={blogPosts} setView={setView} setCurrentCategory={setCurrentCategory} />
+        )}
+
+        {view === 'EDITOR' && (
+          <Editor 
+            onClose={() => setView('LIST')} 
+            onBack={handleBack}
+          />
         )}
       </main>
 

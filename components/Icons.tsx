@@ -22,7 +22,8 @@ import {
   CheckCircle,
   LogOut,
   Settings,
-  Bookmark
+  Save,
+  Check
 } from 'lucide-react';
 
 export { 
@@ -48,5 +49,6 @@ export {
   CheckCircle,
   LogOut,
   Settings,
-  Bookmark
+  Save,
+  Check
 };
