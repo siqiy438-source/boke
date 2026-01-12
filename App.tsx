@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import * as d3 from 'd3';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, Moon, Sun, Menu, X, ArrowLeft, ArrowUp,
   BookOpen, TrendingUp, Brain, Briefcase,
@@ -12,113 +11,6 @@ import { AuthModal } from './components/AuthModal';
 import { Editor } from './components/Editor';
 
 // --- Components ---
-
-// 0. Animated Background Component
-const AnimatedBackground = ({ darkMode }: { darkMode: boolean }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let particles: Particle[] = [];
-
-    // 设置画布大小
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      // 根据屏幕大小调整粒子数量
-      const particleCount = Math.min(
-        Math.floor((window.innerWidth * window.innerHeight) / 25000),
-        100
-      );
-      initParticles(particleCount);
-    };
-
-    // 粒子类
-    class Particle {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      size: number;
-      opacity: number;
-      color: string;
-
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5;
-        this.size = Math.random() * 2 + 1;
-        this.opacity = Math.random() * 0.3 + 0.1;
-        // 根据深色/浅色模式设置粒子颜色
-        this.color = darkMode ? '255, 255, 255' : '100, 116, 139';
-      }
-
-      update() {
-        this.x += this.vx;
-        this.y += this.vy;
-
-        // 边界检测，粒子碰到边界反弹
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${this.color}, ${this.opacity})`;
-        ctx.fill();
-        ctx.closePath();
-      }
-    }
-
-    // 初始化粒子
-    const initParticles = (count: number) => {
-      particles = [];
-      for (let i = 0; i < count; i++) {
-        particles.push(new Particle());
-      }
-    };
-
-    // 动画循环
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // 绘制粒子
-      particles.forEach((particle, index) => {
-        particle.update();
-        particle.draw();
-      });
-
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    // 初始化
-    resizeCanvas();
-    animate();
-
-    // 监听窗口大小变化
-    const handleResize = () => {
-      resizeCanvas();
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    // 清理
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [darkMode]);
-
-  return <canvas ref={canvasRef} className="particle-background" />;
-};
 
 // 1. Navigation / Header
 const Header = ({ 
@@ -148,10 +40,6 @@ const Header = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { user, signOut } = useAuth();
-
-  const categories = Object.values(Category);
-  // 导航栏显示顺序:读书笔记、心智成长、商业思考
-  const navCategories = [Category.READING, Category.MIND, Category.BUSINESS];
 
   const handleSignOut = async () => {
     await signOut();
@@ -207,30 +95,14 @@ const Header = ({
                 window.scrollTo(0, 0);
               }}
               className={`text-sm font-medium transition-all duration-200 hover:text-brand-orange hover:scale-105 ${
-                currentCategory === Category.ALL && view === 'LIST'
-                  ? 'text-brand-orange' 
+                view === 'LIST'
+                  ? 'text-brand-orange'
                   : 'text-slate-600 dark:text-stone-400'
               }`}
             >
               首页
             </button>
-            {navCategories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => {
-                  setCurrentCategory(cat);
-                  setView('LIST');
-                }}
-                className={`text-sm font-medium transition-all duration-200 hover:text-brand-orange hover:scale-105 ${
-                  currentCategory === cat 
-                    ? 'text-brand-orange' 
-                    : 'text-slate-600 dark:text-stone-400'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-            <button 
+            <button
                onClick={() => {
                  setView('ABOUT');
                  window.scrollTo(0, 0);
@@ -239,7 +111,7 @@ const Header = ({
             >
               关于我
             </button>
-            <button 
+            <button
                onClick={() => {
                  setView('TIMELINE');
                  window.scrollTo(0, 0);
@@ -431,30 +303,13 @@ const Header = ({
                 window.scrollTo(0, 0);
               }}
                 className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95 min-h-[44px] ${
-                currentCategory === Category.ALL && view === 'LIST'
+                view === 'LIST'
                   ? 'text-brand-orange bg-orange-50 dark:bg-slate-800'
                   : 'text-slate-600 dark:text-stone-400 hover:text-brand-orange hover:bg-stone-50 dark:hover:bg-slate-800/50'
               }`}
             >
               首页
             </button>
-            {navCategories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => {
-                  setCurrentCategory(cat);
-                  setView('LIST');
-                  setIsMenuOpen(false);
-                }}
-                className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95 min-h-[44px] ${
-                  currentCategory === cat
-                    ? 'text-brand-orange bg-orange-50 dark:bg-slate-800'
-                    : 'text-slate-600 dark:text-stone-400 hover:text-brand-orange hover:bg-stone-50 dark:hover:bg-slate-800/50'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
              <button
                 onClick={() => {
                   setView('ABOUT');
@@ -1182,7 +1037,6 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 via-amber-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
-      <AnimatedBackground darkMode={darkMode} />
       <div className="animated-gradient-bg fixed inset-0 -z-10" />
       <div className="main-content flex-1 flex flex-col">
         <Header 
