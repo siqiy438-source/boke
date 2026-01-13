@@ -836,8 +836,6 @@ const TimelineView = ({ posts, onCardClick }: {
       <div className="relative">
         {/* 桌面端：垂直时间线 */}
         <div className="hidden md:block">
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-orange via-amber-500 to-blue-500"></div>
-          
           {groupedPosts.map(([month, monthPosts], groupIndex) => (
             <div key={month} className="mb-12 relative">
               <div className="absolute left-4 w-8 h-8 rounded-full bg-gradient-to-br from-brand-orange to-amber-500 flex items-center justify-center shadow-lg z-10">
