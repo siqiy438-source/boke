@@ -850,8 +850,11 @@ const TimelineView = ({ posts, onCardClick }: {
                 <div className="space-y-8">
                   {monthPosts.map((post, index) => (
                     <div key={post.id} className="relative group">
-                      {/* 时间线上的小圆点 - 对齐到卡片中心 */}
-                      <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white dark:bg-slate-800 border-4 border-brand-orange shadow-md z-10"></div>
+                      {/* 时间线上的小圆点 - 渐变发光效果 */}
+                      <div className="absolute -left-8 top-1/2 -translate-y-1/2 z-10 group-hover:scale-125 transition-all duration-300">
+                        <div className="absolute inset-0 w-5 h-5 rounded-full bg-brand-orange blur-md opacity-60 group-hover:opacity-80"></div>
+                        <div className="relative w-5 h-5 rounded-full bg-gradient-to-br from-brand-orange via-orange-500 to-amber-500 shadow-lg shadow-brand-orange/40 border-2 border-white dark:border-slate-800"></div>
+                      </div>
                       
                       <div
                         onClick={() => onCardClick(post.id)}
