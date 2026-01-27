@@ -1,0 +1,27 @@
+{
+  "name": "思奇的创业笔记",
+  "short_name": "创业笔记",
+  "description": "一个年轻创业者的长期成长笔记 - 记录阅读、创业与投资的底层思考",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafaf9",
+  "theme_color": "#ea580c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "lifestyle", "productivity"],
+  "lang": "zh-CN",
+  "dir": "ltr"
+}

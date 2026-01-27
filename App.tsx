@@ -2,7 +2,7 @@ import React, { useState, useEffect, lazy, Suspense, memo, useCallback } from 'r
 import {
   Search, Moon, Sun, Menu, X, ArrowLeft, ArrowUp,
   BookOpen, TrendingUp, Brain, Briefcase,
-  Clock, Calendar, User, LogOut, Settings
+  Clock, Calendar, User, LogOut, Settings, Share2
 } from 'lucide-react';
 import { BLOG_POSTS, PERSONAL_INFO } from './constants';
 import { BlogPost, Category, ViewState, PersonalInfo } from './types';
@@ -12,6 +12,10 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
 const Editor = lazy(() => import('./components/Editor').then(m => ({ default: m.Editor })));
 const TimelineView = lazy(() => import('./components/timeline/TimelineView').then(m => ({ default: m.TimelineView })));
+
+// Mobile components
+import { BottomNav } from './components/ui/BottomNav';
+import { PullToRefresh } from './components/ui/PullToRefresh';
 
 // Timeline icon alias
 const Timeline = Calendar;
@@ -538,10 +542,31 @@ const BlogCard: React.FC<BlogCardProps> = memo(({ post, onClick }) => {
 });
 
 // 5. Article Detail View
-const ArticleView = ({ post, onBack }: { 
-  post: BlogPost; 
+const ArticleView = ({ post, onBack }: {
+  post: BlogPost;
   onBack: () => void;
 }) => {
+  // 分享功能
+  const handleShare = async () => {
+    const shareData = {
+      title: post.title,
+      text: post.excerpt,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // 降级方案：复制链接到剪贴板
+        await navigator.clipboard.writeText(window.location.href);
+        alert('链接已复制到剪贴板');
+      }
+    } catch (err) {
+      console.log('分享失败:', err);
+    }
+  };
+
   // Simple markdown-to-html simulator for the demo
   const renderContent = (content: string) => {
     return content.split('\n').map((line, idx) => {
@@ -555,13 +580,23 @@ const ArticleView = ({ post, onBack }: {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 animate-in fade-in slide-in-from-bottom-4 duration-500 motion-reduce:animate-none">
-      <button
-        onClick={onBack}
-        className="mb-6 sm:mb-8 flex items-center gap-2 text-slate-500 hover:text-brand-orange transition-colors group min-h-[44px]"
-      >
-        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform motion-reduce:transition-none motion-reduce:group-hover:translate-x-0" aria-hidden="true" />
-        <span className="text-base">返回列表</span>
-      </button>
+      <div className="flex justify-between items-center mb-6 sm:mb-8">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-slate-500 hover:text-brand-orange transition-colors group min-h-[44px]"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform motion-reduce:transition-none motion-reduce:group-hover:translate-x-0" aria-hidden="true" />
+          <span className="text-base">返回列表</span>
+        </button>
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-brand-orange/10 text-brand-orange hover:bg-brand-orange hover:text-white transition-colors min-h-[44px]"
+          aria-label="分享文章"
+        >
+          <Share2 size={18} aria-hidden="true" />
+          <span className="text-sm font-medium">分享</span>
+        </button>
+      </div>
 
       <article>
         <div className="mb-8">
@@ -910,6 +945,28 @@ const AppContent = () => {
     setView('LIST');
   }, []);
 
+  // BottomNav 导航处理
+  const handleBottomNavNavigate = useCallback((newView: ViewState) => {
+    setView(newView);
+    if (newView === 'LIST') {
+      setCurrentCategory(Category.ALL);
+      setSearchQuery('');
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
+  // 下拉刷新处理
+  const handleRefresh = useCallback(async () => {
+    // 模拟刷新延迟
+    await new Promise(resolve => setTimeout(resolve, 800));
+    // 重新加载数据
+    const savedBlogPosts = localStorage.getItem('blogPosts');
+    if (savedBlogPosts) {
+      const newPosts = JSON.parse(savedBlogPosts);
+      setBlogPosts(newPosts);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 via-amber-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       <div className="animated-gradient-bg fixed inset-0 -z-10" />
@@ -937,9 +994,9 @@ const AppContent = () => {
         )}
       </Suspense>
 
-      <main className="flex-grow">
+      <main className="flex-grow pb-16 md:pb-0">
         {view === 'LIST' && (
-          <>
+          <PullToRefresh onRefresh={handleRefresh}>
             <Hero />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="sticky top-20 z-30 mb-8 bg-white/40 dark:bg-slate-950/30 backdrop-blur-md py-2 rounded-2xl">
@@ -962,7 +1019,7 @@ const AppContent = () => {
                 </div>
               )}
             </div>
-          </>
+          </PullToRefresh>
         )}
 
         {view === 'TIMELINE' && (
@@ -997,7 +1054,10 @@ const AppContent = () => {
 
       <ScrollToTopButton />
 
-      <footer className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-t border-stone-200/50 dark:border-slate-700/50 py-12 mt-12 transition-colors duration-300">
+      {/* Mobile Bottom Navigation */}
+      <BottomNav view={view} onNavigate={handleBottomNavNavigate} />
+
+      <footer className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-t border-stone-200/50 dark:border-slate-700/50 py-12 mt-12 transition-colors duration-300 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="font-serif font-bold text-lg text-slate-800 dark:text-stone-200 mb-2">思奇的创业笔记</p>
           <p className="text-slate-500 dark:text-slate-500 text-sm">
