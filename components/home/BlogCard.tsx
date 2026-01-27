@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BookOpen, TrendingUp, Brain, Briefcase, Calendar, Clock } from '../Icons';
 import { BlogPost, Category } from '../../types';
+import { Skeleton } from '../ui/Skeleton';
 
 interface BlogCardProps {
   post: BlogPost;
@@ -8,6 +9,9 @@ interface BlogCardProps {
 }
 
 export const BlogCard: React.FC<BlogCardProps> = React.memo(({ post, onClick }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   const getIcon = (cat: Category) => {
     switch (cat) {
       case Category.MIND: return <Brain size={14} />;
@@ -25,15 +29,25 @@ export const BlogCard: React.FC<BlogCardProps> = React.memo(({ post, onClick }) 
     >
       {/* Image Container */}
       <div className="relative h-40 sm:h-48 overflow-hidden bg-stone-200 dark:bg-slate-700">
-        {post.coverImage ? (
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            loading="lazy"
-            width={400}
-            height={200}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
+        {post.coverImage && !imageError ? (
+          <>
+            {/* 骨架屏占位 */}
+            {!imageLoaded && (
+              <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
+            )}
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              loading="lazy"
+              width={400}
+              height={200}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+              className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-400">
             <BookOpen size={48} />

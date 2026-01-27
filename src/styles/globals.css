@@ -112,6 +112,22 @@
   .mb-safe {
     margin-bottom: env(safe-area-inset-bottom, 0);
   }
+
+  /* 横屏适配 */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .landscape-compact {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .landscape-hide {
+      display: none;
+    }
+
+    .landscape-smaller {
+      font-size: 0.875rem;
+    }
+  }
 }
 
 @layer components {

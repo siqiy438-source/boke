@@ -1,6 +1,7 @@
 import React from 'react';
 import { BookOpen, Timeline, User } from '../Icons';
 import { ViewState } from '../../types';
+import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 
 interface BottomNavProps {
   view: ViewState;
@@ -11,6 +12,8 @@ export const BottomNav: React.FC<BottomNavProps> = React.memo(({
   view,
   onNavigate,
 }) => {
+  const { lightTap } = useHapticFeedback();
+
   const navItems: Array<{
     view: ViewState;
     label: string;
@@ -33,14 +36,19 @@ export const BottomNav: React.FC<BottomNavProps> = React.memo(({
     },
   ];
 
+  const handleNavigate = (targetView: ViewState) => {
+    lightTap(); // 触觉反馈
+    onNavigate(targetView);
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-stone-200/50 dark:border-slate-700/50 pb-safe">
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => (
           <button
             key={item.view}
-            onClick={() => onNavigate(item.view)}
-            className={`flex flex-col items-center justify-center w-full h-16 transition-all duration-200 gap-1 ${
+            onClick={() => handleNavigate(item.view)}
+            className={`flex flex-col items-center justify-center w-full h-16 transition-all duration-200 gap-1 active:scale-95 ${
               view === item.view
                 ? 'text-brand-orange'
                 : 'text-slate-600 dark:text-stone-400 hover:text-brand-orange'
