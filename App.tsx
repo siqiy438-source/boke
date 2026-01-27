@@ -68,9 +68,11 @@ const Header = ({
             }}
           >
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-400 to-green-400 shadow-md">
-              <img 
-                src="/images/podcast-icon.png" 
-                alt="播客图标" 
+              <img
+                src="/images/podcast-icon.png"
+                alt="播客图标"
+                width={40}
+                height={40}
                 loading="eager"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -183,55 +185,65 @@ const Header = ({
             <div className={`hidden md:flex items-center transition-all duration-300 ${isSearchOpen ? 'w-64' : 'w-8'}`}>
               {isSearchOpen ? (
                 <div className="relative w-full">
+                  <label htmlFor="desktop-search" className="sr-only">搜索文章</label>
                   <input
+                    id="desktop-search"
                     type="text"
-                    placeholder="搜索文章..."
+                    placeholder="搜索文章…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-stone-200/50 dark:border-slate-700/50 rounded-full py-2 pl-4 pr-10 text-sm focus:ring-2 focus:ring-brand-orange outline-none dark:text-white shadow-lg"
                     autoFocus
                   />
-                  <X 
-                    size={16} 
-                    className="absolute right-3 top-2.5 cursor-pointer text-slate-400 hover:text-brand-orange transition-colors"
+                  <button
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-brand-orange transition-colors"
                     onClick={() => {
                       setSearchQuery('');
                       setIsSearchOpen(false);
                     }}
-                  />
+                    aria-label="关闭搜索"
+                  >
+                    <X size={16} aria-hidden="true" />
+                  </button>
                 </div>
               ) : (
-                <Search 
-                  size={20} 
+                <button
                   className="cursor-pointer text-slate-600 dark:text-stone-400 hover:text-brand-orange transition-colors"
                   onClick={() => setIsSearchOpen(true)}
-                />
+                  aria-label="打开搜索"
+                >
+                  <Search size={20} aria-hidden="true" />
+                </button>
               )}
             </div>
 
             {/* Search Button (Mobile) */}
-             <button 
+             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className="md:hidden p-2 rounded-full hover:bg-stone-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-stone-400"
+              aria-label="搜索"
             >
-              <Search size={20} />
+              <Search size={20} aria-hidden="true" />
             </button>
 
             {/* Dark Mode Toggle */}
-            <button 
+            <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-full hover:bg-stone-200 dark:hover:bg-slate-800 transition-all duration-300 hover:scale-110 hover:rotate-12 text-slate-600 dark:text-stone-400 active:scale-95"
+              className="p-2 rounded-full hover:bg-stone-200 dark:hover:bg-slate-800 transition-all duration-300 hover:scale-110 hover:rotate-12 text-slate-600 dark:text-stone-400 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:hover:rotate-0"
+              aria-label={darkMode ? '切换到浅色模式' : '切换到深色模式'}
             >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
             </button>
 
             {/* Mobile Menu Button */}
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-slate-600 dark:text-stone-400 p-2 rounded-full hover:bg-stone-200 dark:hover:bg-slate-800 transition-all duration-300 active:scale-90"
+                className="text-slate-600 dark:text-stone-400 p-2 rounded-full hover:bg-stone-200 dark:hover:bg-slate-800 transition-all duration-300 active:scale-90 motion-reduce:transition-none"
+                aria-label={isMenuOpen ? '关闭菜单' : '打开菜单'}
+                aria-expanded={isMenuOpen}
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMenuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
               </button>
             </div>
           </div>
@@ -240,16 +252,18 @@ const Header = ({
 
       {/* Mobile Search Overlay */}
       {isSearchOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl animate-in fade-in slide-in-from-top duration-300">
+        <div className="md:hidden fixed inset-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl animate-in fade-in slide-in-from-top duration-300 motion-reduce:animate-none">
           <div className="p-4">
               <div className="relative">
+                  <label htmlFor="mobile-search" className="sr-only">搜索文章</label>
                   <input
+                    id="mobile-search"
                     type="text"
-                placeholder="搜索文章..."
+                    placeholder="搜索文章…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-2xl py-4 pl-6 pr-14 text-base focus:ring-2 focus:ring-brand-orange outline-none dark:text-white shadow-xl"
-                autoFocus
+                    className="w-full bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-2xl py-4 pl-6 pr-14 text-base focus:ring-2 focus:ring-brand-orange outline-none dark:text-white shadow-xl"
+                    autoFocus
               />
               <button
                 onClick={() => {
@@ -257,8 +271,9 @@ const Header = ({
                   setIsSearchOpen(false);
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors"
+                aria-label="关闭搜索"
               >
-                <X size={20} className="text-slate-400"/>
+                <X size={20} className="text-slate-400" aria-hidden="true" />
               </button>
               </div>
            </div>
@@ -365,10 +380,10 @@ const ReadingProgressCard = () => {
   return (
     <div className="mt-12 max-w-2xl mx-auto relative group">
       {/* 背景装饰层 - 创造深度感 */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 via-amber-300/20 to-blue-400/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
-      
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 via-amber-300/20 to-blue-400/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500 motion-reduce:transition-none"></div>
+
       {/* 主卡片 - 磨砂玻璃效果 */}
-      <div className="relative bg-white/40 dark:bg-slate-800/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 dark:border-slate-700/60 p-8 sm:p-12 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 hover:shadow-3xl hover:scale-[1.02] transition-all">
+      <div className="relative bg-white/40 dark:bg-slate-800/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 dark:border-slate-700/60 p-8 sm:p-12 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 hover:shadow-3xl hover:scale-[1.02] transition-all motion-reduce:animate-none motion-reduce:hover:scale-100 motion-reduce:transition-none">
         {/* 内部光晕效果 */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-3xl"></div>
         
@@ -394,11 +409,10 @@ const ReadingProgressCard = () => {
           天
         </p>
           
-          {/* 底部装饰线 */}
-          <div className="mt-6 flex justify-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-brand-orange/60 animate-pulse"></div>
-            <div className="w-2 h-2 rounded-full bg-amber-500/60 animate-pulse delay-100"></div>
-            <div className="w-2 h-2 rounded-full bg-blue-500/60 animate-pulse delay-200"></div>
+          <div className="mt-6 flex justify-center gap-2" aria-hidden="true">
+            <div className="w-2 h-2 rounded-full bg-brand-orange/60 animate-pulse motion-reduce:animate-none"></div>
+            <div className="w-2 h-2 rounded-full bg-amber-500/60 animate-pulse delay-100 motion-reduce:animate-none"></div>
+            <div className="w-2 h-2 rounded-full bg-blue-500/60 animate-pulse delay-200 motion-reduce:animate-none"></div>
           </div>
         </div>
       </div>
@@ -410,13 +424,13 @@ const ReadingProgressCard = () => {
 const Hero = () => (
   <div className="relative py-16 sm:py-24 px-4 bg-gradient-to-br from-orange-100 via-amber-50 to-blue-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 transition-colors duration-300">
     <div className="max-w-4xl mx-auto text-center">
-      <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-6 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-6 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700 motion-reduce:animate-none">
         记录阅读、<br/>
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange via-orange-500 to-amber-500 animate-gradient">
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange via-orange-500 to-amber-500 animate-gradient motion-reduce:animate-none">
           创业与投资
         </span>的底层思考
       </h1>
-      <p className="mt-4 text-xl text-slate-600 dark:text-stone-400 max-w-2xl mx-auto font-light animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+      <p className="mt-4 text-xl text-slate-600 dark:text-stone-400 max-w-2xl mx-auto font-light animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 motion-reduce:animate-none">
         一个年轻创业者的长期成长笔记
       </p>
       <ReadingProgressCard />
@@ -435,15 +449,15 @@ const FilterBar = ({
   return (
     <div className="w-full overflow-x-auto pb-4 pt-2 px-4 hide-scrollbar flex justify-start md:justify-center gap-3">
       {Object.values(Category).map((cat) => (
-        <button
-          key={cat}
-          onClick={() => setCategory(cat)}
-          className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border backdrop-blur-xl touch-manipulation active:scale-95 min-h-[44px] ${
+          <button
+            key={cat}
+            onClick={() => setCategory(cat)}
+            className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border backdrop-blur-xl touch-manipulation active:scale-95 min-h-[44px] motion-reduce:transition-none motion-reduce:active:scale-100 ${
             currentCategory === cat
-              ? 'bg-slate-900/90 text-white border-slate-900/50 shadow-lg scale-105 dark:bg-white/90 dark:text-slate-900 dark:border-white/50'
-              : 'bg-white/70 text-slate-600 border-stone-200/50 hover:border-brand-orange hover:text-brand-orange hover:shadow-md hover:scale-105 dark:bg-slate-800/70 dark:text-stone-400 dark:border-slate-700/50'
+              ? 'bg-slate-900/90 text-white border-slate-900/50 shadow-lg scale-105 dark:bg-white/90 dark:text-slate-900 dark:border-white/50 motion-reduce:scale-100'
+              : 'bg-white/70 text-slate-600 border-stone-200/50 hover:border-brand-orange hover:text-brand-orange hover:shadow-md hover:scale-105 dark:bg-slate-800/70 dark:text-stone-400 dark:border-slate-700/50 motion-reduce:hover:scale-100'
           }`}
-        >
+          >
           {cat}
         </button>
       ))}
@@ -468,27 +482,29 @@ const categoryIcons: Record<Category, React.ReactNode> = {
 
 const BlogCard: React.FC<BlogCardProps> = memo(({ post, onClick }) => {
   return (
-    <div 
+    <div className="group cursor-pointer flex flex-col bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] hover:rotate-1 active:scale-[0.98] transition-all duration-500 border border-stone-200/50 dark:border-slate-700/50 h-full touch-manipulation will-change-transform motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100 motion-reduce:hover:rotate-0"
       onClick={onClick}
-      className="group cursor-pointer flex flex-col bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] hover:rotate-1 active:scale-[0.98] transition-all duration-500 border border-stone-200/50 dark:border-slate-700/50 h-full touch-manipulation will-change-transform"
+      role="article"
     >
       {/* Image Container */}
       <div className="relative h-40 sm:h-48 overflow-hidden bg-stone-200 dark:bg-slate-700">
         {post.coverImage ? (
-          <img 
-            src={post.coverImage} 
-            alt={post.title} 
+          <img
+            src={post.coverImage}
+            alt={post.title}
+            width={400}
+            height={192}
             loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-400">
-            <BookOpen size={48} />
+            <BookOpen size={48} aria-hidden="true" />
           </div>
         )}
         <div className="absolute top-3 left-3 flex items-center gap-2">
              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-stone-200 backdrop-blur-sm shadow-sm">
-               {categoryIcons[post.category]}
+               <span aria-hidden="true">{categoryIcons[post.category]}</span>
                {post.category}
              </span>
         </div>
@@ -497,11 +513,11 @@ const BlogCard: React.FC<BlogCardProps> = memo(({ post, onClick }) => {
       {/* Content */}
       <div className="p-5 flex-1 flex flex-col">
         <div className="mb-3 flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500 select-none">
-          <span className="flex items-center gap-1"><Calendar size={12}/> {post.date}</span>
-          <span className="flex items-center gap-1"><Clock size={12}/> {post.readTime}</span>
+          <span className="flex items-center gap-1"><Calendar size={12} aria-hidden="true" /> {post.date}</span>
+          <span className="flex items-center gap-1"><Clock size={12} aria-hidden="true" /> {post.readTime}</span>
         </div>
 
-        <h3 className="text-lg sm:text-xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-3 group-hover:text-brand-orange transition-colors duration-300 line-clamp-2">
+        <h3 className="text-lg sm:text-xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-3 group-hover:text-brand-orange transition-colors duration-300 line-clamp-2 motion-reduce:transition-none">
           {post.title}
         </h3>
         
@@ -511,7 +527,7 @@ const BlogCard: React.FC<BlogCardProps> = memo(({ post, onClick }) => {
 
         <div className="flex flex-wrap gap-2 mt-auto">
           {post.tags.map(tag => (
-            <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-stone-100/80 dark:bg-slate-700/80 backdrop-blur-sm text-slate-500 dark:text-stone-400 border border-stone-200/50 dark:border-slate-600/50 hover:scale-110 hover:bg-brand-orange/10 hover:text-brand-orange transition-all duration-300 cursor-default">
+            <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-stone-100/80 dark:bg-slate-700/80 backdrop-blur-sm text-slate-500 dark:text-stone-400 border border-stone-200/50 dark:border-slate-600/50 hover:scale-110 hover:bg-brand-orange/10 hover:text-brand-orange transition-all duration-300 cursor-default motion-reduce:transition-none motion-reduce:hover:scale-100">
               #{tag}
             </span>
           ))}
@@ -538,12 +554,12 @@ const ArticleView = ({ post, onBack }: {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <button 
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 animate-in fade-in slide-in-from-bottom-4 duration-500 motion-reduce:animate-none">
+      <button
         onClick={onBack}
         className="mb-6 sm:mb-8 flex items-center gap-2 text-slate-500 hover:text-brand-orange transition-colors group min-h-[44px]"
       >
-        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform"/>
+        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform motion-reduce:transition-none motion-reduce:group-hover:translate-x-0" aria-hidden="true" />
         <span className="text-base">返回列表</span>
       </button>
 
@@ -572,7 +588,7 @@ const ArticleView = ({ post, onBack }: {
           {/* Simulated Image */}
           {post.coverImage && (
              <div className="w-full h-64 sm:h-96 rounded-2xl overflow-hidden mb-10 shadow-lg bg-stone-200 dark:bg-slate-700">
-               <img src={post.coverImage} alt={post.title} loading="lazy" className="w-full h-full object-cover"/>
+               <img src={post.coverImage} alt={post.title} width={768} height={384} loading="lazy" className="w-full h-full object-cover"/>
              </div>
           )}
           
@@ -620,10 +636,10 @@ const ScrollToTopButton = () => {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-8 right-8 z-40 p-3 sm:p-4 rounded-full bg-brand-orange/90 hover:bg-brand-orange text-white shadow-2xl hover:shadow-brand-orange/50 backdrop-blur-xl transition-all duration-300 hover:scale-110 active:scale-95 min-h-[48px] min-w-[48px]"
+      className="fixed bottom-8 right-8 z-40 p-3 sm:p-4 rounded-full bg-brand-orange/90 hover:bg-brand-orange text-white shadow-2xl hover:shadow-brand-orange/50 backdrop-blur-xl transition-all duration-300 hover:scale-110 active:scale-95 min-h-[48px] min-w-[48px] motion-reduce:transition-none motion-reduce:hover:scale-100"
       aria-label="返回顶部"
     >
-      <ArrowUp size={20} className="sm:w-6 sm:h-6" />
+      <ArrowUp size={20} className="sm:w-6 sm:h-6" aria-hidden="true" />
     </button>
   );
 };
@@ -690,11 +706,11 @@ const AboutSection = ({ personalInfo, blogPosts, setView, setCurrentCategory }: 
   }
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-xl mx-auto px-4 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500 motion-reduce:animate-none">
       {/* 核心层：头像 + 姓名 + 副标题 */}
       <div className="text-center mb-8">
         <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-4 border-white/80 dark:border-slate-800/80 shadow-xl backdrop-blur-xl">
-           <img src={personalInfo.avatarUrl} alt={personalInfo.name} loading="lazy" className="w-full h-full object-cover"/>
+           <img src={personalInfo.avatarUrl} alt={personalInfo.name} width={96} height={96} loading="lazy" className="w-full h-full object-cover"/>
         </div>
         <h2 className="text-2xl font-semibold text-slate-900 dark:text-white mb-1">{personalInfo.name}</h2>
         <p className="text-slate-500">{personalInfo.subtitle}</p>
@@ -715,16 +731,17 @@ const AboutSection = ({ personalInfo, blogPosts, setView, setCurrentCategory }: 
       </div>
 
       {/* 交互层：更多/收起按钮 */}
-      <button 
+      <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full py-4 mb-6 rounded-2xl bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium transition-all active:scale-95 hover:bg-stone-200 dark:hover:bg-slate-700"
+        className="w-full py-4 mb-6 rounded-2xl bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium transition-all active:scale-95 hover:bg-stone-200 dark:hover:bg-slate-700 motion-reduce:transition-none motion-reduce:active:scale-100"
+        aria-expanded={isExpanded}
       >
         {isExpanded ? '收起' : '更多'}
       </button>
 
       {/* 详细层：展开内容 */}
       {isExpanded && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none">
           {/* 个人介绍卡片 */}
           <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl p-8">
             <div className="space-y-8">
@@ -759,19 +776,19 @@ const AboutSection = ({ personalInfo, blogPosts, setView, setCurrentCategory }: 
               {personalInfo.columns && personalInfo.columns.map((column, index) => {
                 const IconComponent = getIconComponent(column.icon);
                 return (
-                  <button 
-                    key={index} 
+                  <button
+                    key={index}
                     onClick={() => handleColumnClick(column.icon)}
-                    className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-stone-50 dark:hover:bg-slate-700/50 transition-all hover:scale-[1.02] active:scale-95 text-left"
+                    className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-stone-50 dark:hover:bg-slate-700/50 transition-all hover:scale-[1.02] active:scale-95 text-left motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
                   >
                     <div className="flex items-center gap-3">
-                      <IconComponent className="text-brand-orange shrink-0" size={20}/>
+                      <IconComponent className="text-brand-orange shrink-0" size={20} aria-hidden="true" />
                       <div>
                         <div className="font-medium text-slate-900 dark:text-stone-100">{column.title}</div>
                         <div className="text-sm text-slate-500">{column.description}</div>
                       </div>
                     </div>
-                    <span className="text-slate-400">→</span>
+                    <span className="text-slate-400" aria-hidden="true">→</span>
                   </button>
                 );
               })}
