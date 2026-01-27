@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { 
+import React, { useState, useEffect, lazy, Suspense, memo, useCallback } from 'react';
+import {
   Search, Moon, Sun, Menu, X, ArrowLeft, ArrowUp,
   BookOpen, TrendingUp, Brain, Briefcase,
-  Twitter, Github, Mail, Clock, Calendar, User, LogOut, Settings, Timeline, Network
-} from './components/Icons';
+  Clock, Calendar, User, LogOut, Settings
+} from 'lucide-react';
 import { BLOG_POSTS, PERSONAL_INFO } from './constants';
 import { BlogPost, Category, ViewState, PersonalInfo } from './types';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { AuthModal } from './components/AuthModal';
-import { Editor } from './components/Editor';
+
+// Lazy load heavy components (bundle-dynamic-imports)
+const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
+const Editor = lazy(() => import('./components/Editor').then(m => ({ default: m.Editor })));
+const TimelineView = lazy(() => import('./components/timeline/TimelineView').then(m => ({ default: m.TimelineView })));
+
+// Timeline icon alias
+const Timeline = Calendar;
 
 // --- Components ---
 
@@ -445,24 +451,22 @@ const FilterBar = ({
   );
 };
 
-// 4. Blog Card
+// 4. Blog Card - Memoized to prevent unnecessary re-renders (rerender-memo)
 type BlogCardProps = {
   post: BlogPost;
   onClick: () => void;
 };
 
-const BlogCard: React.FC<BlogCardProps> = ({ post, onClick }) => {
-  // Mapping categories to icons
-  const getIcon = (cat: Category) => {
-    switch(cat) {
-      case Category.MIND: return <Brain size={14} />;
-      case Category.BUSINESS: return <Briefcase size={14} />;
-      case Category.WEALTH: return <TrendingUp size={14} />;
-      case Category.READING: return <BookOpen size={14} />;
-      default: return <BookOpen size={14} />;
-    }
-  };
+// Hoist static icon map outside component (rendering-hoist-jsx)
+const categoryIcons: Record<Category, React.ReactNode> = {
+  [Category.MIND]: <Brain size={14} />,
+  [Category.BUSINESS]: <Briefcase size={14} />,
+  [Category.WEALTH]: <TrendingUp size={14} />,
+  [Category.READING]: <BookOpen size={14} />,
+  [Category.ALL]: <BookOpen size={14} />,
+};
 
+const BlogCard: React.FC<BlogCardProps> = memo(({ post, onClick }) => {
   return (
     <div 
       onClick={onClick}
@@ -484,7 +488,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, onClick }) => {
         )}
         <div className="absolute top-3 left-3 flex items-center gap-2">
              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-stone-200 backdrop-blur-sm shadow-sm">
-               {getIcon(post.category)}
+               {categoryIcons[post.category]}
                {post.category}
              </span>
         </div>
@@ -515,7 +519,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, onClick }) => {
       </div>
     </div>
   );
-};
+});
 
 // 5. Article Detail View
 const ArticleView = ({ post, onBack }: { 
@@ -589,42 +593,38 @@ const ArticleView = ({ post, onBack }: {
   );
 };
 
-// 6. Scroll to Top Button
+// 6. Scroll to Top Button - Optimized with passive event listener (client-passive-event-listeners)
 const ScrollToTopButton = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.pageYOffset > 500) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+      // Use scrollY instead of deprecated pageYOffset
+      setIsVisible(window.scrollY > 500);
     };
 
-    window.addEventListener('scroll', toggleVisibility);
+    // Use passive event listener for better scroll performance
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
-  const scrollToTop = () => {
+  const scrollToTop = useCallback(() => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
-  };
+  }, []);
+
+  if (!isVisible) return null;
 
   return (
-    <>
-      {isVisible && (
-      <button 
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-40 p-3 sm:p-4 rounded-full bg-brand-orange/90 hover:bg-brand-orange text-white shadow-2xl hover:shadow-brand-orange/50 backdrop-blur-xl transition-all duration-300 hover:scale-110 active:scale-95 min-h-[48px] min-w-[48px]"
-          aria-label="返回顶部"
-        >
-          <ArrowUp size={20} className="sm:w-6 sm:h-6" />
-                 </button>
-             )}
-    </>
+    <button
+      onClick={scrollToTop}
+      className="fixed bottom-8 right-8 z-40 p-3 sm:p-4 rounded-full bg-brand-orange/90 hover:bg-brand-orange text-white shadow-2xl hover:shadow-brand-orange/50 backdrop-blur-xl transition-all duration-300 hover:scale-110 active:scale-95 min-h-[48px] min-w-[48px]"
+      aria-label="返回顶部"
+    >
+      <ArrowUp size={20} className="sm:w-6 sm:h-6" />
+    </button>
   );
 };
 
@@ -784,165 +784,6 @@ const AboutSection = ({ personalInfo, blogPosts, setView, setCurrentCategory }: 
   );
 };
 
-// 8. Timeline View
-const TimelineView = ({ posts, onCardClick }: { 
-  posts: BlogPost[]; 
-  onCardClick: (id: string) => void;
-}) => {
-  // 按日期分组文章
-  const groupPostsByDate = (posts: BlogPost[]) => {
-    const grouped: Record<string, BlogPost[]> = {};
-    
-    posts.forEach(post => {
-      const date = new Date(post.date);
-      const year = date.getFullYear();
-      const month = date.getMonth() + 1;
-      const key = `${year}年${month}月`;
-      
-      if (!grouped[key]) {
-        grouped[key] = [];
-      }
-      grouped[key].push(post);
-    });
-    
-    // 对每个组内的文章按日期排序（新的在前）
-    Object.keys(grouped).forEach(key => {
-      grouped[key].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    });
-    
-    // 返回排序后的年月组（新的在前）
-    return Object.entries(grouped).sort((a, b) => {
-      const [aYear, aMonth] = a[0].split('年').map(Number);
-      const [bYear, bMonth] = b[0].split('年').map(Number);
-      
-      if (aYear !== bYear) return bYear - aYear;
-      return bMonth - aMonth;
-    });
-  };
-
-  const groupedPosts = groupPostsByDate(posts);
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-slate-900 dark:text-stone-100 mb-4">
-          成长时间线
-        </h1>
-        <p className="text-lg text-slate-600 dark:text-stone-400">
-          记录每一步思考，见证成长轨迹
-        </p>
-      </div>
-
-      <div className="relative">
-        {/* 桌面端：垂直时间线 */}
-        <div className="hidden md:block">
-          {groupedPosts.map(([month, monthPosts], groupIndex) => (
-            <div key={month} className="mb-12 relative">
-              <div className="absolute left-4 w-8 h-8 rounded-full bg-gradient-to-br from-brand-orange to-amber-500 flex items-center justify-center shadow-lg z-10">
-                <Calendar size={16} className="text-white" />
-              </div>
-              
-              <div className="ml-16">
-                <h2 className="text-2xl font-bold text-brand-orange mb-6 font-serif">{month}</h2>
-                
-                <div className="space-y-8">
-                  {monthPosts.map((post, index) => (
-                    <div key={post.id} className="relative group">
-                      {/* 时间线上的小圆点 - 渐变发光效果 */}
-                      <div className="absolute -left-8 top-1/2 -translate-y-1/2 z-10 group-hover:scale-125 transition-all duration-300">
-                        <div className="absolute inset-0 w-5 h-5 rounded-full bg-brand-orange blur-md opacity-60 group-hover:opacity-80"></div>
-                        <div className="relative w-5 h-5 rounded-full bg-gradient-to-br from-brand-orange via-orange-500 to-amber-500 shadow-lg shadow-brand-orange/40 border-2 border-white dark:border-slate-800"></div>
-                      </div>
-                      
-                      <div
-                        onClick={() => onCardClick(post.id)}
-                        className="pl-6 cursor-pointer group-hover:translate-x-2 transition-transform duration-300"
-                      >
-                        <div className="flex items-center gap-2 mb-2 text-sm text-slate-500 dark:text-slate-400">
-                          <Clock size={12} />
-                          {post.date}
-                          <span className="text-slate-300 dark:text-slate-600">•</span>
-                          {post.readTime}
-                        </div>
-                        
-                        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-stone-200/50 dark:border-slate-700/50 group-hover:border-brand-orange/50">
-                          <div className="flex items-start gap-4">
-                            {post.coverImage && (
-                              <img 
-                                src={post.coverImage} 
-                                alt={post.title}
-                                className="w-24 h-24 object-cover rounded-xl flex-shrink-0"
-                              />
-                            )}
-                            <div className="flex-1">
-                              <span className="inline-block px-2 py-1 rounded-md text-xs font-semibold bg-brand-orange/10 text-brand-orange mb-2">
-                                {post.category}
-                              </span>
-                              <h3 className="text-lg font-bold text-slate-900 dark:text-stone-100 mb-2 group-hover:text-brand-orange transition-colors font-serif">
-                                {post.title}
-                              </h3>
-                              <p className="text-sm text-slate-600 dark:text-stone-400 line-clamp-2">
-                                {post.excerpt}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 移动端：水平时间线 */}
-        <div className="md:hidden space-y-8">
-          {groupedPosts.map(([month, monthPosts]) => (
-            <div key={month} className="relative">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-8 bg-gradient-to-b from-brand-orange to-amber-500 rounded-full"></div>
-                <h2 className="text-xl font-bold text-brand-orange font-serif">{month}</h2>
-              </div>
-              
-              <div className="space-y-4 pl-4 border-l-2 border-stone-200 dark:border-slate-700">
-                {monthPosts.map((post) => (
-                  <div key={post.id} className="relative group">
-                    <div 
-                      onClick={() => onCardClick(post.id)}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2 mb-1 text-xs text-slate-500 dark:text-slate-400">
-                        <Calendar size={10} />
-                        {post.date}
-                        <span className="text-slate-300 dark:text-slate-600">•</span>
-                        <Clock size={10} />
-                        {post.readTime}
-                      </div>
-                      
-                      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-stone-200/50 dark:border-slate-700/50">
-                        <span className="inline-block px-2 py-0.5 rounded-md text-xs font-semibold bg-brand-orange/10 text-brand-orange mb-2">
-                          {post.category}
-                        </span>
-                        <h3 className="text-base font-bold text-slate-900 dark:text-stone-100 mb-1 group-hover:text-brand-orange transition-colors font-serif">
-                          {post.title}
-                        </h3>
-                        <p className="text-sm text-slate-600 dark:text-stone-400 line-clamp-2">
-                          {post.excerpt}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // --- Main App Logic ---
 
 const AppContent = () => {
@@ -1018,46 +859,66 @@ const AppContent = () => {
     }
   }, [darkMode]);
 
-  // Navigation Handlers
-  const handleCardClick = (id: string) => {
+  // Navigation Handlers - use useCallback for stable references (rerender-functional-setstate)
+  const handleCardClick = useCallback((id: string) => {
     setActivePostId(id);
     setView('DETAIL');
     window.scrollTo(0, 0);
-  };
+  }, []);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setView('LIST');
     setActivePostId(null);
     window.scrollTo(0, 0);
-  };
+  }, []);
 
-  const handleEditorClick = () => {
+  const handleEditorClick = useCallback(() => {
     setView('EDITOR');
     window.scrollTo(0, 0);
-  };
+  }, []);
+
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => !prev);
+  }, []);
+
+  const openAuthModal = useCallback(() => {
+    setIsAuthModalOpen(true);
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setIsAuthModalOpen(false);
+  }, []);
+
+  const closeEditor = useCallback(() => {
+    setView('LIST');
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 via-amber-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       <div className="animated-gradient-bg fixed inset-0 -z-10" />
       <div className="main-content flex-1 flex flex-col">
-        <Header 
-        darkMode={darkMode} 
-        toggleDarkMode={() => setDarkMode(!darkMode)} 
+        <Header
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
         setView={setView}
         view={view}
         currentCategory={currentCategory}
         setCurrentCategory={setCurrentCategory}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        onAuthClick={() => setIsAuthModalOpen(true)}
+        onAuthClick={openAuthModal}
         onEditorClick={handleEditorClick}
       />
 
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-      />
+      {/* Auth Modal - Lazy loaded with Suspense */}
+      <Suspense fallback={null}>
+        {isAuthModalOpen && (
+          <AuthModal
+            isOpen={isAuthModalOpen}
+            onClose={closeAuthModal}
+          />
+        )}
+      </Suspense>
 
       <main className="flex-grow">
         {view === 'LIST' && (
@@ -1071,9 +932,9 @@ const AppContent = () => {
               {displayPosts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                   {displayPosts.map(post => (
-                    <BlogCard 
-                      key={post.id} 
-                      post={post} 
+                    <BlogCard
+                      key={post.id}
+                      post={post}
                       onClick={() => handleCardClick(post.id)}
                     />
                   ))}
@@ -1088,15 +949,17 @@ const AppContent = () => {
         )}
 
         {view === 'TIMELINE' && (
-          <TimelineView 
-            posts={blogPosts} 
-            onCardClick={handleCardClick}
-          />
+          <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-orange"></div></div>}>
+            <TimelineView
+              posts={blogPosts}
+              onCardClick={handleCardClick}
+            />
+          </Suspense>
         )}
 
         {view === 'DETAIL' && activePostId && (
-          <ArticleView 
-            post={blogPosts.find(p => p.id === activePostId)!} 
+          <ArticleView
+            post={blogPosts.find(p => p.id === activePostId)!}
             onBack={handleBack}
            />
         )}
@@ -1106,10 +969,12 @@ const AppContent = () => {
         )}
 
         {view === 'EDITOR' && (
-          <Editor 
-            onClose={() => setView('LIST')} 
-            onBack={handleBack}
-          />
+          <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-orange"></div></div>}>
+            <Editor
+              onClose={closeEditor}
+              onBack={handleBack}
+            />
+          </Suspense>
         )}
       </main>
 
